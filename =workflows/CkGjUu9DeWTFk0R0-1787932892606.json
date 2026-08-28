@@ -1,0 +1,375 @@
+{
+  "updatedAt": "2026-07-22T11:25:49.785Z",
+  "createdAt": "2026-07-22T10:26:36.603Z",
+  "id": "CkGjUu9DeWTFk0R0",
+  "name": "Citizen Digital Extractor",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://citizen.digital/business",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -688,
+        240
+      ],
+      "id": "5e5cb8f5-68c8-4023-8ad6-3c20ad5d9bbb",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -960,
+        48
+      ],
+      "id": "1b1662cb-e95b-4fd8-b381-46513543c353",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 7
+            },
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -944,
+        464
+      ],
+      "id": "a9d7b3b5-ddca-4d5c-9bc4-6131e7d0f01b",
+      "name": "Citizen Data"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ded3ddef-d891-48f8-af45-b8a091f5be43",
+              "leftValue": "={{ $json.data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "2edd47b7-926c-4938-bbbb-5b2fc2f77d8f",
+              "leftValue": "={{ $json.data }}",
+              "rightValue": "Business",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -416,
+        240
+      ],
+      "id": "3def035f-4b67-4d35-b8cc-65e2f3ce828f",
+      "name": "Validation Gate"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze the HTML content: {{ $json.data }} Think step-by-step to separate the main article content from the advertisements and navigation menus. ",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "You are a helpful You are an expert Data Analyst for a Nairobi investment firm. You extract structured data from messy HTML.\n\nInput: \"...<h1>Safaricom shares rise 2%</h1>...\"\nOutput: { \"headline\": \"Safaricom shares rise 2%\", \"entity\": \"Safaricom\" "
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "6a6637f7-39a6-4f10-a4ac-fc3bba95cd6f",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {
+          "maxTokens": 2048,
+          "temperature": 0.4,
+          "maxRetries": 2
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        400
+      ],
+      "id": "c6a9c760-9205-47c5-b6cc-e4658c91df49",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "tDpr8Zoc5UalZJAa",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "devstral-latest",
+        "options": {
+          "maxTokens": 2048,
+          "temperature": 0.4,
+          "maxRetries": 2,
+          "safeMode": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        16,
+        432
+      ],
+      "id": "5f778e82-00f6-41af-88f7-b9f70382322a",
+      "name": "Mistral Cloud Chat Model",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "gJIHi818kMaD3hpy",
+          "name": "Mistral Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $now }}",
+        "contextWindowLength": 25
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        208,
+        432
+      ],
+      "id": "d715d57b-26de-4bf2-98f3-76b131684bf2",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\"top_headline\": \"string\",\n  \"summary_bullet_points\": \"string[]\",\n  \"companies_mentioned\": \"string[]\",\n  \"market_sentiment\": \"Positive | Neutral | Negative\"}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        384,
+        224
+      ],
+      "id": "f237f042-2671-452b-a35f-3eaa28c0cce5",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "model": "mistral-medium",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        464,
+        448
+      ],
+      "id": "3273d8a3-e39d-4476-9cd7-7aed21645399",
+      "name": "Mistral Cloud Chat Model1",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "gJIHi818kMaD3hpy",
+          "name": "Mistral Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "laura.makaka@student.moringaschool.com",
+        "subject": "=Daily Market Briefing {{ $json.output.market_sentiment }}",
+        "emailType": "text",
+        "message": "=Top Headline:{{ $json.output.top_headline }}\nSummary Bulleting: {{ $json.output.summary_bullet_points }}\nCompanies Mentioned:{{ $json.output.companies_mentioned }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        352,
+        16
+      ],
+      "id": "1fa82d48-0983-4568-a8dd-137e335ecd18",
+      "name": "Send a message",
+      "webhookId": "b65281ef-f739-450a-931f-7f3386748bc0",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "99tInuffroXLujwm",
+          "name": "Gmail account 2"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Citizen Data": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Validation Gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validation Gate": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral Cloud Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral Cloud Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "8cc5aa9a-ac3f-4697-b0ae-3934edcb8b51",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-07-22T10:26:36.603Z",
+      "createdAt": "2026-07-22T10:26:36.603Z",
+      "role": "workflow:owner",
+      "workflowId": "CkGjUu9DeWTFk0R0",
+      "projectId": "aEmg0W5LInvaXu5h"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
