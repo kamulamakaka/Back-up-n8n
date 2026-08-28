@@ -1,0 +1,526 @@
+={
+  "updatedAt": "2026-07-29T15:44:44.709Z",
+  "createdAt": "2026-07-29T09:24:51.037Z",
+  "id": "0Xin3GY9NkiYviWP",
+  "name": "AI Incident Response and Post-Mortem Automation",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -176,
+        64
+      ],
+      "id": "92200da0-2f74-49f7-aa36-7f60e8dc2680",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -16,
+        48
+      ],
+      "id": "058c48d0-007a-4d7b-bc8c-65f29de22443",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zaBqUPxNKi3hNy3M",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "id": "0d5c73e8-7858-46c0-a874-5a5afb081d44",
+      "name": "Hourly Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1232,
+        -64
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1n1nA-Sh-XzzoYgxiTb8TGzEp-qnFe7kyw_uahxDZ7lg/edit?gid=2111402992#gid=2111402992",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2111402992,
+          "mode": "list",
+          "cachedResultName": "Incident Logs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1n1nA-Sh-XzzoYgxiTb8TGzEp-qnFe7kyw_uahxDZ7lg/edit#gid=2111402992"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Report Status",
+              "lookupValue": "pending"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6a7fd2ad-a515-4a2c-861d-61bc1e7a8131",
+      "name": "Fetch Pending Incidents",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -992,
+        -64
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zaBqUPxNKi3hNy3M",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze the technical logs below:\n\n{{ $json[\"Raw Logs\"] }}\n\nIncident metadata:\nIncident ID: {{ $json[\"Incident ID\"] }}\nTimestamp: {{ $json[\"Timestamp\"] }}\n\nTasks:\n1. Draft a professional post-mortem summary in clear plain text. Use these section headings: Executive Summary, Customer and Business Impact, Timeline and Evidence, Root Cause, Resolution and Recovery, and Corrective and Preventive Actions. Do not invent facts; write \"Unknown from provided logs\" where evidence is missing.\n2. Determine severity using this rubric:\n- High: core production service unavailable, widespread customer impact, confirmed or likely data loss, security breach, or a major incident requiring immediate executive attention.\n- Medium: meaningful service degradation or limited customer impact, but no evidence of a critical outage, security breach, or data loss.\n- Low: minor, isolated, transient, or informational issue with negligible customer impact.\n3. Create a concise incident title.\n\nReturn JSON only with report_body, severity_score, and incident_title.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are an experienced Site Reliability Incident Commander. Base every conclusion only on the supplied logs. Apply the severity rubric consistently so that only genuinely critical incidents are classified High.",
+          "maxIterations": 3,
+          "enableStreaming": false
+        }
+      },
+      "id": "afdbdcd8-b576-4d97-b050-b8b4474d724c",
+      "name": "Incident Commander",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -720,
+        -176
+      ]
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"report_body\": {\n      \"type\": \"string\",\n      \"description\": \"Professional post-mortem report in plain text\"\n    },\n    \"severity_score\": {\n      \"type\": \"string\",\n      \"enum\": [\"High\", \"Medium\", \"Low\"]\n    },\n    \"incident_title\": {\n      \"type\": \"string\",\n      \"description\": \"Concise professional incident title\"\n    }\n  },\n  \"required\": [\"report_body\", \"severity_score\", \"incident_title\"],\n  \"additionalProperties\": false\n}"
+      },
+      "id": "786c9c9c-23ab-4699-a948-f097525b0e97",
+      "name": "Structured Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -528,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "folderId": "default",
+        "title": "={{ $('Incident Commander').item.json.output.incident_title + ' - ' + $('Fetch Pending Incidents').item.json['Incident ID'] }}"
+      },
+      "id": "7ad9c8ff-116d-4aab-a7f4-b4f2f27ea832",
+      "name": "Create Post-Mortem Document",
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        -336,
+        -64
+      ],
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "oC7nfNfwfKbPkyiH",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $json.id }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "insert",
+              "text": "=POST-MORTEM REPORT\n\nTitle: {{ $('Incident Commander').item.json.output.incident_title }}\nIncident ID: {{ $('Fetch Pending Incidents').item.json['Incident ID'] }}\nReported Timestamp: {{ $('Fetch Pending Incidents').item.json['Timestamp'] }}\nSeverity: {{ $('Incident Commander').item.json.output.severity_score }}\n\n{{ $('Incident Commander').item.json.output.report_body }}"
+            }
+          ]
+        }
+      },
+      "id": "27617006-5482-42b1-9661-845406bdcebc",
+      "name": "Write Post-Mortem Content",
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        -112,
+        -208
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8a70145c-6789-4461-a596-f38ec961b53c",
+              "leftValue": "={{ $('Incident Commander').item.json.output.severity_score }}",
+              "rightValue": "High",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": false
+        }
+      },
+      "id": "f501bc1b-573e-4ae5-b3ef-8b01431d9dd8",
+      "name": "High Severity?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        208,
+        -64
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "YOUR_TEST_EMAIL@example.com",
+        "subject": "=URGENT: High-Severity Incident - {{ $('Incident Commander').item.json.output.incident_title }}",
+        "message": "=<h2>High-Severity Incident Escalation</h2><p><strong>Incident ID:</strong> {{ $('Fetch Pending Incidents').item.json['Incident ID'] }}</p><p><strong>Title:</strong> {{ $('Incident Commander').item.json.output.incident_title }}</p><p><strong>Severity:</strong> {{ $('Incident Commander').item.json.output.severity_score }}</p><p>The automated incident review classified this event as High severity. Immediate executive attention is required.</p><p><a href=\"https://docs.google.com/document/d/{{ $('Write Post-Mortem Content').item.json.documentId }}/edit\">Open the post-mortem report</a></p>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "f50301bb-47e9-4027-80a5-d09dbdc99a9b",
+      "name": "Email CTO Alert",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        480,
+        -176
+      ],
+      "webhookId": "f113e69c-57e7-42bc-9a4c-67a19a6f575b"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Incidents",
+          "mode": "name",
+          "cachedResultName": "Incidents"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Incident ID": "={{ $('Fetch Pending Incidents').item.json['Incident ID'] }}",
+            "Report Status": "Processed",
+            "Google Doc Link": "=https://docs.google.com/document/d/{{ $('Write Post-Mortem Content').item.json.documentId }}/edit"
+          },
+          "matchingColumns": [
+            "Incident ID"
+          ],
+          "schema": [
+            {
+              "id": "Incident ID",
+              "displayName": "Incident ID",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Raw Logs",
+              "displayName": "Raw Logs",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Report Status",
+              "displayName": "Report Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Google Doc Link",
+              "displayName": "Google Doc Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "cellFormat": "USER_ENTERED",
+          "locationDefine": {
+            "values": {}
+          }
+        }
+      },
+      "id": "3d31fe90-89fa-46e2-9357-55f2650ce825",
+      "name": "Mark Incident Processed",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        736,
+        -64
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zaBqUPxNKi3hNy3M",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Escalation Logic\n\nThe IF node checks the AI field `severity_score`.\n\n- **High** → send an urgent Gmail alert to the CTO, then mark the incident as Processed.\n- **Medium or Low** → do not send an email; only mark the incident as Processed.\n\nThis reduces alert fatigue while still generating and logging a post-mortem for every pending incident.",
+        "height": 420,
+        "width": 660,
+        "color": 5
+      },
+      "id": "bafa318d-2d59-4315-af19-8b21496f1fb6",
+      "name": "Escalation Logic Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        96,
+        -304
+      ]
+    },
+    {
+      "parameters": {
+        "model": "devstral-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        -864,
+        32
+      ],
+      "id": "7a023b69-a5bd-4bb6-ad37-025c65cdb465",
+      "name": "Mistral Cloud Chat Model",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "gJIHi818kMaD3hpy",
+          "name": "Mistral Cloud account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hourly Schedule": {
+      "main": [
+        [
+          {
+            "node": "Fetch Pending Incidents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Pending Incidents": {
+      "main": [
+        [
+          {
+            "node": "Incident Commander",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Incident Commander",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Incident Commander": {
+      "main": [
+        [
+          {
+            "node": "Create Post-Mortem Document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Post-Mortem Document": {
+      "main": [
+        [
+          {
+            "node": "Write Post-Mortem Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Post-Mortem Content": {
+      "main": [
+        [
+          {
+            "node": "High Severity?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "High Severity?": {
+      "main": [
+        [
+          {
+            "node": "Email CTO Alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mark Incident Processed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email CTO Alert": {
+      "main": [
+        [
+          {
+            "node": "Mark Incident Processed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral Cloud Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Incident Commander",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "e7499ca2-2eb9-4d3f-8a0f-a7e9a0898f9e",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-07-29T09:24:51.040Z",
+      "createdAt": "2026-07-29T09:24:51.040Z",
+      "role": "workflow:owner",
+      "workflowId": "0Xin3GY9NkiYviWP",
+      "projectId": "aEmg0W5LInvaXu5h"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
