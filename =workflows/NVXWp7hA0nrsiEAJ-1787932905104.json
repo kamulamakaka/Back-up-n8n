@@ -1,0 +1,473 @@
+{
+  "updatedAt": "2026-08-15T10:53:42.003Z",
+  "createdAt": "2026-08-15T09:31:34.496Z",
+  "id": "NVXWp7hA0nrsiEAJ",
+  "name": "Daily Workflow Error Intelligence Digest",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "id": "c37e2641-2b01-452c-aad1-da500614d62f",
+      "name": "Daily at Midnight",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -96,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1eKdOXj49YrwjD2LwxdbQ4B6zb4KgGIz2Uct3pnakALc/edit?gid=1921175755#gid=1921175755",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1921175755,
+          "mode": "list",
+          "cachedResultName": "Workflow_Logs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1eKdOXj49YrwjD2LwxdbQ4B6zb4KgGIz2Uct3pnakALc/edit#gid=1921175755"
+        },
+        "options": {}
+      },
+      "id": "0f3c09ef-e8db-4355-a7fd-849ab7910b10",
+      "name": "Read Workflow Logs",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        128,
+        160
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zaBqUPxNKi3hNy3M",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "3c517cd9-2cf6-456f-af6e-cf8b60162f1c",
+              "leftValue": "={{ $json.Status }}",
+              "rightValue": "Failed",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "8461fb20-62f8-49c0-8a41-8301de3dd662",
+              "leftValue": "={{ DateTime.fromFormat($json.Timestamp, 'yyyy-MM-dd HH:mm:ss', { zone: 'Africa/Nairobi' }).toMillis() >= $now.minus({ hours: 24 }).toMillis() && DateTime.fromFormat($json.Timestamp, 'yyyy-MM-dd HH:mm:ss', { zone: 'Africa/Nairobi' }).toMillis() <= $now.toMillis() }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "2d747ce9-7d26-4a18-a3c9-9f936ab9af58",
+      "name": "Filter Failed Logs (Last 24h)",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        368,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "84c4c1c6-9fe7-4f57-80b0-8ff2c3f2643a",
+              "name": "WorkflowName",
+              "value": "={{ $json.WorkflowName }}",
+              "type": "string"
+            },
+            {
+              "id": "a3b1e9a7-c183-4903-8fb4-8de351154759",
+              "name": "ErrorMessage",
+              "value": "={{ $json.ErrorMessage }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "42a3b643-102a-4b5b-9f12-1510364371ec",
+      "name": "Select Error Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        608,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "errors",
+        "options": {}
+      },
+      "id": "53add7e8-e992-4068-881f-def3ec9938c8",
+      "name": "Aggregate Errors",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        848,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Review these workflow error logs from the last 24 hours:\n{{ JSON.stringify($json.errors, null, 2) }}\n\n1. Identify the workflow causing the most errors.\n2. Summarize the most likely root causes, grouping related technical symptoms.\n3. Recommend one priority action for the reliability team.\n\nReturn only the structured JSON requested by the connected output parser.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a senior reliability analyst. Be concise, evidence-based, and operational. Do not invent causes that are unsupported by the supplied error messages."
+        }
+      },
+      "id": "f265b884-5496-4339-95e9-855fe521f212",
+      "name": "AI Reliability Analyst",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1056,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"analysis_summary\": \"Inventory_Sync errors are dominated by repeated API or database timeouts.\",\n  \"top_workflow\": \"Inventory_Sync\",\n  \"priority_action\": \"Inspect Inventory API and warehouse database connectivity, authentication, and timeout thresholds.\"\n}"
+      },
+      "id": "3b04bed0-725d-4fe5-91d1-7cd61082098f",
+      "name": "Structured Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1232,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.output ?? $json;\nlet parsed = raw;\n\nif (typeof raw === 'string') {\n  const cleaned = raw\n    .replace(/^```(?:json)?\\s*/i, '')\n    .replace(/\\s*```$/, '')\n    .trim();\n  parsed = JSON.parse(cleaned);\n}\n\nconst errors = $('Aggregate Errors').first().json.errors ?? [];\n\nreturn [{\n  json: {\n    TotalErrors: errors.length,\n    analysis_summary: parsed.analysis_summary ?? 'No analysis returned',\n    top_workflow: parsed.top_workflow ?? 'Unknown',\n    priority_action: parsed.priority_action ?? 'Review the failed workflow logs'\n  }\n}];"
+      },
+      "id": "3a4ec69f-cd91-4b8e-83c3-0a4a7bae3165",
+      "name": "Normalize AI Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1376,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1eKdOXj49YrwjD2LwxdbQ4B6zb4KgGIz2Uct3pnakALc",
+          "mode": "list",
+          "cachedResultName": "Workflow_Logs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1eKdOXj49YrwjD2LwxdbQ4B6zb4KgGIz2Uct3pnakALc/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 245276862,
+          "mode": "list",
+          "cachedResultName": "DailySummaries",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1eKdOXj49YrwjD2LwxdbQ4B6zb4KgGIz2Uct3pnakALc/edit#gid=245276862"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $now.setZone('Africa/Nairobi').toFormat('yyyy-MM-dd') }}",
+            "TotalErrors": "={{ $('Normalize AI Output').item.json.TotalErrors }}",
+            "AI_Analysis": "={{ $('Normalize AI Output').item.json.analysis_summary + ' Priority action: ' + $('Normalize AI Output').item.json.priority_action }}",
+            "Top_Failing_Workflow": "={{ $('Normalize AI Output').item.json.top_workflow }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "TotalErrors",
+              "displayName": "TotalErrors",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "AI_Analysis",
+              "displayName": "AI_Analysis",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Top_Failing_Workflow",
+              "displayName": "Top_Failing_Workflow",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "6f2cdea3-1cea-4127-b5d3-a61bcf47a38d",
+      "name": "Archive Daily Insight",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1616,
+        160
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zaBqUPxNKi3hNy3M",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "laura.makaka@student.moringaschool.com",
+        "subject": "=Daily System Health: {{ $('Normalize AI Output').item.json.top_workflow }} needs attention.",
+        "emailType": "text",
+        "message": "=Good morning Amani,\n\nYesterday we recorded {{ $('Normalize AI Output').item.json.TotalErrors }} errors.\nAnalysis: {{ $('Normalize AI Output').item.json.analysis_summary }}\nRecommended Action: {{ $('Normalize AI Output').item.json.priority_action }}\n\nFull logs have been archived in the DailySummaries tab.",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "92081611-993c-4728-861f-d8500c5b157d",
+      "name": "Email Amani",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1856,
+        160
+      ],
+      "webhookId": "d7f43ed2-f8e1-46f5-b7be-a1ac24c2f703",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "99tInuffroXLujwm",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Setup before activation\n1. Select your Google Sheets credential in both Sheets nodes.\n2. Select your OpenAI credential and model.\n3. Select your Gmail credential.\n4. Replace `REPLACE_WITH_AMANI_EMAIL@example.com`.\n5. Keep the workflow timezone as `Africa/Nairobi`.\n6. Test manually, then activate.",
+        "height": 240,
+        "width": 420,
+        "color": 5
+      },
+      "id": "cc70bce4-7476-40f3-9b32-d09bea17d472",
+      "name": "Setup Notes",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        -176
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        960,
+        416
+      ],
+      "id": "47a9445a-2b87-4d22-a670-a792c6f78c32",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "tDpr8Zoc5UalZJAa",
+          "name": "OpenRouter account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Daily at Midnight": {
+      "main": [
+        [
+          {
+            "node": "Read Workflow Logs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Workflow Logs": {
+      "main": [
+        [
+          {
+            "node": "Filter Failed Logs (Last 24h)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Failed Logs (Last 24h)": {
+      "main": [
+        [
+          {
+            "node": "Select Error Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Error Fields": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Errors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Errors": {
+      "main": [
+        [
+          {
+            "node": "AI Reliability Analyst",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Reliability Analyst",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Reliability Analyst": {
+      "main": [
+        [
+          {
+            "node": "Normalize AI Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize AI Output": {
+      "main": [
+        [
+          {
+            "node": "Archive Daily Insight",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Archive Daily Insight": {
+      "main": [
+        [
+          {
+            "node": "Email Amani",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Reliability Analyst",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "b02c477c-2047-4c89-9034-99594be7b25e",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-08-15T09:31:34.498Z",
+      "createdAt": "2026-08-15T09:31:34.498Z",
+      "role": "workflow:owner",
+      "workflowId": "NVXWp7hA0nrsiEAJ",
+      "projectId": "aEmg0W5LInvaXu5h"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
