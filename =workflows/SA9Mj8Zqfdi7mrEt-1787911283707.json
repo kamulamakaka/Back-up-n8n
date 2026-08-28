@@ -1,0 +1,184 @@
+{
+  "updatedAt": "2026-08-07T16:17:29.137Z",
+  "createdAt": "2026-08-06T15:07:42.472Z",
+  "id": "SA9Mj8Zqfdi7mrEt",
+  "name": "My workflow 155",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "path": "new-ticket",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2048,
+        -16
+      ],
+      "id": "97502fa3-d6bb-40f9-b051-083b6cb5dcf4",
+      "name": "Webhook",
+      "webhookId": "183c88b9-b217-4dd4-bb0a-29303c37c97c"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1ceqvFqT_zJHDkAkq_O_Ttuuj0tZzNN_Cw5UYlCQLIJY/edit?gid=1181647309#gid=1181647309",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1181647309,
+          "mode": "list",
+          "cachedResultName": "SupportTickets",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ceqvFqT_zJHDkAkq_O_Ttuuj0tZzNN_Cw5UYlCQLIJY/edit#gid=1181647309"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Status",
+              "lookupValue": "New"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1840,
+        -16
+      ],
+      "id": "8beeb8eb-629b-4083-9c89-c4b9cd596d2e",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zaBqUPxNKi3hNy3M",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Current ticket:\n{{ JSON.stringify($json) }}\n\nAll tickets in this webhook batch:\n\n\nClean the current ticket.\n1. Standardize Category to exactly one of: Billing, Technical, General. Use the Issue text as the main evidence when the raw Category is unclear.\n2. Decide whether the current ticket is a duplicate. A duplicate must describe the same underlying issue for the same customer email as another ticket in this batch. Keep the earliest TicketID and mark only the later matching ticket as duplicate. Similar issues from different customers are not duplicates.\n\nReturn only the structured output requested by the parser.",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -1568,
+        -224
+      ],
+      "id": "b3a38dfa-ddd4-47be-97f1-b7f567bbd7c4",
+      "name": "The Janitor"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -1632,
+        48
+      ],
+      "id": "e7fdfe3e-e6c1-4738-b8a4-69e22c6bef2f",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "tDpr8Zoc5UalZJAa",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "Clean this ticket data: {{ $json }}\n\n1. Standardize the 'Category' into one of these: \"Billing\", \"Technical\", \"General\".\n2. Identify if this request is a duplicate of a previous one in the list.\n\nOutput JSON: { \"clean_category\": \"string\", \"is_duplicate\": boolean }"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -1408,
+        -16
+      ],
+      "id": "226e865d-f77a-4beb-9365-d18e295c9185",
+      "name": "Structured Output Parser"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "The Janitor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "The Janitor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "The Janitor",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "3132ec29-eee0-452f-b009-1fec7d7dc3a1",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-08-06T15:07:42.474Z",
+      "createdAt": "2026-08-06T15:07:42.474Z",
+      "role": "workflow:owner",
+      "workflowId": "SA9Mj8Zqfdi7mrEt",
+      "projectId": "aEmg0W5LInvaXu5h"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
