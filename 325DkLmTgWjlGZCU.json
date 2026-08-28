@@ -1,0 +1,133 @@
+={
+  "updatedAt": "2026-07-22T08:27:25.776Z",
+  "createdAt": "2026-07-22T08:27:25.776Z",
+  "id": "325DkLmTgWjlGZCU",
+  "name": "My workflow 101",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "a8440b0b-f7b0-4f66-93ac-388b64ce79b2",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0d1ff4f3-f9dc-4735-8ff2-5b065c9ff6fa",
+              "name": "",
+              "value": "name",
+              "type": "string"
+            },
+            {
+              "id": "9ce1b969-78dd-4dc7-97e9-c6d86c40f311",
+              "name": "",
+              "value": "age",
+              "type": "string"
+            },
+            {
+              "id": "6a590085-d569-4922-a819-34d88bcd8fb6",
+              "name": "",
+              "value": "email",
+              "type": "string"
+            },
+            {
+              "id": "e48d9a9d-e1dd-4a39-893b-72da0331a191",
+              "name": "",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "3c7573fe-1c4c-4cea-9339-31dc90ad0cf4",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a43483b6-f2a8-4db6-8ce2-5afcdf095c5a",
+              "name": "name",
+              "value": "mary",
+              "type": "string"
+            },
+            {
+              "id": "88863d8c-ebf2-4b12-9d74-05ef462707a0",
+              "name": "age",
+              "value": "30",
+              "type": "string"
+            },
+            {
+              "id": "1657a073-9f19-47e7-84d1-973fc29a0f8e",
+              "name": "email",
+              "value": "mary@gmail.com",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        416,
+        0
+      ],
+      "id": "7ea0d399-9b46-412e-b03c-9b39d4b54fa4",
+      "name": "Edit Fields1"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "630bf6e7-b519-42f2-835c-a27e5950c2b1",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-07-22T08:27:25.778Z",
+      "createdAt": "2026-07-22T08:27:25.778Z",
+      "role": "workflow:owner",
+      "workflowId": "325DkLmTgWjlGZCU",
+      "projectId": "aEmg0W5LInvaXu5h"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
