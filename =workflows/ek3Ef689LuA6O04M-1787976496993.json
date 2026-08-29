@@ -1,0 +1,367 @@
+{
+  "updatedAt": "2026-07-22T10:25:53.716Z",
+  "createdAt": "2026-07-22T10:24:33.495Z",
+  "id": "ek3Ef689LuA6O04M",
+  "name": "FINANCE: Employee Expense Claim Processor Laura copy",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "e581c875-bcec-494c-b577-65f64edd47f4",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -800,
+        96
+      ],
+      "id": "e616eaa1-c003-4828-a41d-5b3fa3e5b54d",
+      "name": "Webhook",
+      "webhookId": "e581c875-bcec-494c-b577-65f64edd47f4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ab0a8353-49b6-4745-95e0-73031ad14699",
+              "name": "SubmissionDate",
+              "value": "12/7/2026",
+              "type": "string"
+            },
+            {
+              "id": "cf7af0df-779e-433f-81f3-58eb5d51d3c6",
+              "name": "EmployeeName",
+              "value": "Laura",
+              "type": "string"
+            },
+            {
+              "id": "1833ec5c-3463-4c76-90be-9c9d26f85104",
+              "name": "EmployeeEmail",
+              "value": "kamulamakaka@gmail.com",
+              "type": "string"
+            },
+            {
+              "id": "5bee8622-26e0-4ab2-a90c-a59c667ffab7",
+              "name": "Amount",
+              "value": "£10,000.00",
+              "type": "string"
+            },
+            {
+              "id": "7e38034a-0ef0-497b-a098-10a008ca07a7",
+              "name": "Description",
+              "value": "Pending Review",
+              "type": "string"
+            },
+            {
+              "id": "5144c12e-d124-4906-82b9-88c262854c30",
+              "name": "Description",
+              "value": "Fuel Reimbursement",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -608,
+        96
+      ],
+      "id": "da870799-209d-403d-9a7b-71839a847307",
+      "name": "Prepare Claim Data"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d20e68a0-2c80-44da-a5df-38c81588c61a",
+              "leftValue": "Data Type",
+              "rightValue": "Number",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "8a7adeaf-2ac9-43a0-ae88-cb378afc3900",
+              "leftValue": "Left Value",
+              "rightValue": "8,000",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "581f7d19-b135-48dd-953b-fb02540f5509",
+              "leftValue": "Operation",
+              "rightValue": "Is less than",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "a5c86aeb-8058-4f44-a9f9-90b408b784b8",
+              "leftValue": "Right Value",
+              "rightValue": "10,000",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -208,
+        96
+      ],
+      "id": "4d0582b3-cefe-4720-9ae2-42d5e6cd2736",
+      "name": "If amount below 10,000"
+    },
+    {
+      "parameters": {
+        "sendTo": "kamulamakaka@gmail.com",
+        "subject": "Expense Claim Received – Auto-Approved",
+        "message": "=Dear Zachary, \nYour expense claim of KES 5000 for Inventory Expences has been received and automatically approved because it is below KES 10,000.  Finance will proceed with the next reimbursement steps. \nRegards, \nPesi Pesi Logistics Finance",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "d0decb89-4b2d-486e-849a-7466a847a97a",
+      "name": "Email Employee: Auto-Approved",
+      "webhookId": "a33150fa-84b8-4ecb-be46-429d529b8471",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "99tInuffroXLujwm",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "kamulamakaka@gmail.com",
+        "subject": "=Manager Review Required: Employee Expense Claim",
+        "message": "=A new employee expense claim requires managerial review.  Employee: {{ $json.EmployeeName }} Amount: KES {{ $json.Amount }} Description: {{ $json.Description }} Submission Date: {{ $json.SubmissionDate }} Current Status: {{ $json.Status }}  Please review the claim in accordance with the company expense policy.  Regards, Pesi Pesi Logistics Finance Automation",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        112,
+        288
+      ],
+      "id": "80673e01-54d4-4da5-add3-8b451ddf1149",
+      "name": "Send a message",
+      "webhookId": "0c836320-8815-4127-8c4c-a019bce7d141",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "99tInuffroXLujwm",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1aG1tyFuhXrKMB6nLmhrsi4mxNfdZIpoXrDp3r6AlKvc/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1aG1tyFuhXrKMB6nLmhrsi4mxNfdZIpoXrDp3r6AlKvc/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "SubmissionDate"
+          ],
+          "schema": [
+            {
+              "id": "SubmissionDate",
+              "displayName": "SubmissionDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "EmployeeName",
+              "displayName": "EmployeeName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Amount",
+              "displayName": "Amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Description",
+              "displayName": "Description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "EmployeeEmail",
+              "displayName": "EmployeeEmail",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -400,
+        96
+      ],
+      "id": "1d46b143-a436-4e3f-83b5-b49b9f66346c",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zaBqUPxNKi3hNy3M",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Prepare Claim Data": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If amount below 10,000": {
+      "main": [
+        [
+          {
+            "node": "Email Employee: Auto-Approved",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "If amount below 10,000",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "68d7cb3d-b76e-4a63-a615-6cfdc9835895",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-07-22T10:24:33.498Z",
+      "createdAt": "2026-07-22T10:24:33.498Z",
+      "role": "workflow:owner",
+      "workflowId": "ek3Ef689LuA6O04M",
+      "projectId": "aEmg0W5LInvaXu5h"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
