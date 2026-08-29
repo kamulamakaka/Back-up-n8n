@@ -1,0 +1,260 @@
+{
+  "updatedAt": "2026-08-12T18:03:12.859Z",
+  "createdAt": "2026-08-12T16:04:16.559Z",
+  "id": "kAFI7z5JCn14gFU6",
+  "name": "Basic Error Trigger",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        -4000,
+        -288
+      ],
+      "id": "6537dffd-8b41-44f5-9456-0679af94a562",
+      "name": "Error Trigger",
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4b359344-2b93-4ea6-922e-b63e93b65055",
+              "name": "execution id",
+              "value": "={{ $json.execution.id }}",
+              "type": "string"
+            },
+            {
+              "id": "80c6fbb4-3bcd-4fc6-b697-32a1a9fcd017",
+              "name": "execution error",
+              "value": "={{ $json.execution.error }}",
+              "type": "object"
+            },
+            {
+              "id": "6abd5f80-33ac-4abe-b804-8e65e79ef19d",
+              "name": "execution error level",
+              "value": "={{ $json.execution.error.level }}",
+              "type": "string"
+            },
+            {
+              "id": "c7c51c23-f8b4-4d8e-8831-e0c1fe6a5c32",
+              "name": "execution error messages",
+              "value": "={{ $json.execution.error.messages }}",
+              "type": "array"
+            },
+            {
+              "id": "e981a722-5781-41cd-a7e7-6af09ed9b9e5",
+              "name": "execution lastNodeExecuted",
+              "value": "={{ $json.execution.lastNodeExecuted }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -3728,
+        -288
+      ],
+      "id": "e92b6667-0ba8-494d-b846-5f31545458a2",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "sendTo": "kamulamakaka@gmail.com",
+        "subject": "=n8n Error Notification {{ $json['execution id'] }}",
+        "emailType": "text",
+        "message": "=Dear Laura,\n\n\nError: {{ $json['execution id'] }}\n\nLevel:{{ $json['execution error'].level }}\n\nType: {{ $json['execution error'].node.type }}\n\n\nErro Name: {{ $json['execution error'].node.name }}\n\nMessage: {{ $json['execution error'].message }}\n\nClick here for more Details: \n{{ $json['execution error'].name }}\n",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -3520,
+        -288
+      ],
+      "id": "450694dd-e184-4a5e-8bfc-ed96f650e3ee",
+      "name": "Send a message",
+      "webhookId": "b92c0a8d-8603-4209-b4f3-5b58772be014",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "99tInuffroXLujwm",
+          "name": "Gmail account 2"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "kAFI7z5JCn14gFU6",
+    "callerPolicy": "workflowsFromSameOwner",
+    "timezone": "Africa/Nairobi",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {
+    "Error Trigger": [
+      {
+        "json": {
+          "execution": {
+            "id": "515",
+            "url": "http://localhost:5678/workflow/YsIer0F5wRCV39xM/executions/515",
+            "error": {
+              "level": "warning",
+              "shouldReport": true,
+              "tags": {},
+              "timestamp": 1786556745300,
+              "context": {},
+              "functionality": "regular",
+              "name": "NodeOperationError",
+              "node": {
+                "parameters": {
+                  "authentication": "oAuth2",
+                  "resource": "sheet",
+                  "operation": "read",
+                  "documentId": {
+                    "__rl": true,
+                    "value": "=https://docs.google.com/spreadsheets/d/1Jy4voqOlbRshhZbM2dUe32gmALxIMVCo2blcuNQC5KU/edit?gid=185571197#gid=185571197",
+                    "mode": "url"
+                  },
+                  "sheetName": {
+                    "__rl": true,
+                    "value": "=",
+                    "mode": "id"
+                  },
+                  "filtersUI": {},
+                  "combineFilters": "AND",
+                  "options": {}
+                },
+                "type": "n8n-nodes-base.googleSheets",
+                "typeVersion": 4.7,
+                "position": [
+                  -432,
+                  -288
+                ],
+                "id": "a04d9ee1-4297-47c6-b92e-65ee042224c8",
+                "name": "Get row(s) in sheet",
+                "credentials": {
+                  "googleSheetsOAuth2Api": {
+                    "id": "zaBqUPxNKi3hNy3M",
+                    "name": "Google Sheets account"
+                  }
+                }
+              },
+              "messages": [],
+              "message": "Sheet with ID  not found",
+              "stack": "NodeOperationError: Sheet with ID  not found\n    at GoogleSheet.spreadsheetGetSheet (/usr/local/lib/node_modules/n8n/node_modules/n8n-nodes-base/nodes/Google/Sheet/v2/helpers/GoogleSheet.ts:156:10)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at ExecuteContext.router (/usr/local/lib/node_modules/n8n/node_modules/n8n-nodes-base/nodes/Google/Sheet/v2/actions/router.ts:43:20)\n    at ExecuteContext.execute (/usr/local/lib/node_modules/n8n/node_modules/n8n-nodes-base/nodes/Google/Sheet/v2/GoogleSheetsV2.node.ts:30:10)\n    at WorkflowExecute.executeNode (/usr/local/lib/node_modules/n8n/node_modules/n8n-core/src/execution-engine/workflow-execute.ts:1081:8)\n    at WorkflowExecute.runNode (/usr/local/lib/node_modules/n8n/node_modules/n8n-core/src/execution-engine/workflow-execute.ts:1381:11)\n    at /usr/local/lib/node_modules/n8n/node_modules/n8n-core/src/execution-engine/workflow-execute.ts:1854:27\n    at /usr/local/lib/node_modules/n8n/node_modules/n8n-core/src/execution-engine/workflow-execute.ts:2546:11"
+            },
+            "lastNodeExecuted": "Get row(s) in sheet",
+            "mode": "webhook",
+            "executionContext": {
+              "version": 1,
+              "establishedAt": 1786556743069,
+              "source": "webhook",
+              "triggerNode": {
+                "name": "Webhook",
+                "type": "n8n-nodes-base.webhook"
+              },
+              "redaction": {
+                "version": 2,
+                "production": false,
+                "manual": false,
+                "source": "workflow"
+              }
+            }
+          },
+          "workflow": {
+            "id": "YsIer0F5wRCV39xM",
+            "name": "Limit Assignment"
+          }
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "versionId": "31cdd793-cab0-48e4-a397-05b3e7b107c3",
+  "activeVersionId": "481807f8-7273-48a0-a53a-b8b6e17f1605",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-08-12T16:04:16.561Z",
+      "createdAt": "2026-08-12T16:04:16.561Z",
+      "role": "workflow:owner",
+      "workflowId": "kAFI7z5JCn14gFU6",
+      "projectId": "aEmg0W5LInvaXu5h"
+    }
+  ],
+  "activeVersion": {
+    "updatedAt": "2026-08-12T17:36:24.000Z",
+    "createdAt": "2026-08-12T17:35:24.491Z",
+    "versionId": "481807f8-7273-48a0-a53a-b8b6e17f1605",
+    "workflowId": "kAFI7z5JCn14gFU6",
+    "nodes": [
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.errorTrigger",
+        "typeVersion": 1,
+        "position": [
+          -3520,
+          -256
+        ],
+        "id": "6537dffd-8b41-44f5-9456-0679af94a562",
+        "name": "Error Trigger",
+        "alwaysOutputData": true,
+        "executeOnce": true,
+        "retryOnFail": true
+      }
+    ],
+    "connections": {},
+    "nodeGroups": [],
+    "authors": "Laura Makaka",
+    "name": "Version 481807f8",
+    "description": "",
+    "autosaved": true
+  },
+  "tags": []
+}
