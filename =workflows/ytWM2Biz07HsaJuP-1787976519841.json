@@ -1,0 +1,242 @@
+{
+  "updatedAt": "2026-07-28T16:26:51.842Z",
+  "createdAt": "2026-07-27T16:57:45.712Z",
+  "id": "ytWM2Biz07HsaJuP",
+  "name": "My workflow 148",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1136,
+        -192
+      ],
+      "id": "b22d1993-282c-4da0-9dfd-c83e8ce89b6d",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Draft an email to HR to ask for a salary review and end-of-year bonus.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -944,
+        -192
+      ],
+      "id": "157ce705-b045-453b-8ac3-07481850653b",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-4-turbo",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -1024,
+        48
+      ],
+      "id": "ea4fa6d2-47ce-4ad5-9560-1c47af363ca8",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "tDpr8Zoc5UalZJAa",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "kamulamakaka@gmail.com",
+        "subject": "Draft Email Approval Required",
+        "message": "=Is the email well written? {{ $json.output }}",
+        "responseType": "customForm",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -624,
+        -192
+      ],
+      "id": "288d5a5f-32a1-4a4c-8885-ba52dc4bd96e",
+      "name": "Send message and wait for response",
+      "webhookId": "03d80fcb-fa07-47b3-8d9e-1ef994f93350",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "99tInuffroXLujwm",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "fde32244-aa3e-4a97-9317-0bd7acff259f",
+              "leftValue": "={{ $json.data['Approve/Decline'] }}",
+              "rightValue": "Decline",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -448,
+        -192
+      ],
+      "id": "0b4217b6-536a-4fb2-9c5f-97a95299532d",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Original Email : {{ $('AI Agent').item.json.output }}\nUser's feedback: {{ $json.data.Feedback }}\nCan you update with name instead of the placeholder? ",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -240,
+        -288
+      ],
+      "id": "21578868-60be-4812-876b-7c79e5ea3100",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "model": "openai/o4-mini",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -272,
+        64
+      ],
+      "id": "8b67ffd4-f714-4824-ac18-680b45fa3491",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "tDpr8Zoc5UalZJAa",
+          "name": "OpenRouter account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send message and wait for response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message and wait for response": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "974df0ec-66dc-4171-b094-0e999dd367ef",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-07-27T16:57:45.714Z",
+      "createdAt": "2026-07-27T16:57:45.714Z",
+      "role": "workflow:owner",
+      "workflowId": "ytWM2Biz07HsaJuP",
+      "projectId": "aEmg0W5LInvaXu5h"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
