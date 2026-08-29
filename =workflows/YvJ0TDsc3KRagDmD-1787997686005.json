@@ -1,0 +1,521 @@
+{
+  "updatedAt": "2026-08-14T17:44:54.185Z",
+  "createdAt": "2026-08-14T15:41:31.912Z",
+  "id": "YvJ0TDsc3KRagDmD",
+  "name": "Error Trigger",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        -2688,
+        -240
+      ],
+      "id": "05120ae3-7934-4352-991e-a43798811d5d",
+      "name": "Error Trigger",
+      "alwaysOutputData": false,
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cfea20d7-5f37-4c51-bf94-77b6e8c96124",
+              "name": "workflow",
+              "value": "={{ $json.workflow }}",
+              "type": "object"
+            },
+            {
+              "id": "f97db1fa-d4d7-4129-a7d7-ea05f98b84d7",
+              "name": "workflow_id",
+              "value": "={{ $json.workflow.id }}",
+              "type": "string"
+            },
+            {
+              "id": "57bf6be7-ab8b-4dad-a16b-5a63433e9264",
+              "name": "execution_url",
+              "value": "={{ $json.execution.url }}",
+              "type": "string"
+            },
+            {
+              "id": "720632af-c4ab-4259-85fa-2c123132deb5",
+              "name": "execution_error_level",
+              "value": "={{ $json.execution.error.level }}",
+              "type": "string"
+            },
+            {
+              "id": "cf5ab82d-269e-462e-83a0-ec26dad1cefd",
+              "name": "execution_error_timestamp",
+              "value": "={{ $json.execution.error.timestamp }}",
+              "type": "number"
+            },
+            {
+              "id": "e524e6ef-fd5f-41c9-8a9e-585d17810e44",
+              "name": "execution_error.node.parameters.documentId.mode",
+              "value": "={{ $json.execution.error.node.parameters.documentId.mode }}",
+              "type": "string"
+            },
+            {
+              "id": "73709517-62f3-4fca-93c0-085ffa08d0e3",
+              "name": "execution_error_message",
+              "value": "={{ $json.execution.error.message }}",
+              "type": "string"
+            },
+            {
+              "id": "7f1e34b1-cb7e-4a13-a45b-54178bf4afd6",
+              "name": "execution_lastNodeExecuted",
+              "value": "={{ $json.execution.lastNodeExecuted }}",
+              "type": "string"
+            },
+            {
+              "id": "e966f713-c1d4-4bda-888f-af4c0e12abff",
+              "name": "execution.id",
+              "value": "={{ $json.execution.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2480,
+        -240
+      ],
+      "id": "380e748a-4d49-4a6d-a553-4d6194bcae99",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "sendTo": "kamulamakaka@gmail.com",
+        "subject": "=Error Notification",
+        "emailType": "text",
+        "message": "=Hello Laura, \n\nWe have an error on {{ $json.workflow.name }}\n\nError Level: {{$json.execution_error_level }}\n\nLikely because {{ $('Error Trigger').item.json.execution.error.message }}\n\nHappened on {{ $json.execution_lastNodeExecuted }}\n\nTo view the error, please click on {{ $json.execution_url }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -2256,
+        -320
+      ],
+      "id": "38488340-f34d-4531-bc77-160f2bbfe4b4",
+      "name": "Send a message",
+      "webhookId": "04bb03d2-5de4-426f-a6ac-57fb566671d9",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "99tInuffroXLujwm",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "spreadsheet",
+        "title": "N8n Error",
+        "sheetsUi": {
+          "sheetValues": [
+            {
+              "title": "Main Tracker"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -2240,
+        -144
+      ],
+      "id": "8bd8ad2d-3e89-4dcf-abd9-172dd5bf1aba",
+      "name": "Create spreadsheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zaBqUPxNKi3hNy3M",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json.spreadsheetUrl }}",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 506592166,
+          "mode": "list",
+          "cachedResultName": "Main Tracker",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1V5u759xW0TfL0AKzeE1epyvvDdCTHD1hrVgiHZ6bdCA/edit#gid=506592166"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "spreadsheetId",
+              "displayName": "spreadsheetId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "properties",
+              "displayName": "properties",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sheets",
+              "displayName": "sheets",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "spreadsheetUrl",
+              "displayName": "spreadsheetUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -2032,
+        -144
+      ],
+      "id": "291dd67f-295c-4d27-8a3f-00e89e7a2c30",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zaBqUPxNKi3hNy3M",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create spreadsheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create spreadsheet": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "YvJ0TDsc3KRagDmD",
+    "callerPolicy": "workflowsFromSameOwner",
+    "timezone": "Africa/Nairobi"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {
+    "Error Trigger": [
+      {
+        "json": {
+          "execution": {
+            "id": "545",
+            "url": "http://localhost:5678/workflow/IYShkiWIgKs4G7b6/executions/545",
+            "error": {
+              "level": "warning",
+              "shouldReport": true,
+              "tags": {},
+              "timestamp": 1786726576124,
+              "context": {},
+              "functionality": "regular",
+              "name": "NodeOperationError",
+              "node": {
+                "parameters": {
+                  "authentication": "oAuth2",
+                  "resource": "sheet",
+                  "operation": "read",
+                  "documentId": {
+                    "__rl": true,
+                    "value": "https://docs.google.com/spreadsheets/d/1xjwxXg0Ytrbj_56MvDfPHg45HulV1LMkqwMY9JcqLJ0/edit?gid=1024283007#gid=1024283007",
+                    "mode": "url"
+                  },
+                  "sheetName": {
+                    "__rl": true,
+                    "value": "=",
+                    "mode": "id"
+                  },
+                  "filtersUI": {},
+                  "combineFilters": "AND",
+                  "options": {}
+                },
+                "type": "n8n-nodes-base.googleSheets",
+                "typeVersion": 4.7,
+                "position": [
+                  -688,
+                  -128
+                ],
+                "id": "d1771c56-3650-4825-92fe-bdcb4234035d",
+                "name": "Get row(s) in sheet",
+                "credentials": {
+                  "googleSheetsOAuth2Api": {
+                    "id": "zaBqUPxNKi3hNy3M",
+                    "name": "Google Sheets account"
+                  }
+                }
+              },
+              "messages": [],
+              "message": "Sheet with ID  not found",
+              "stack": "NodeOperationError: Sheet with ID  not found\n    at GoogleSheet.spreadsheetGetSheet (/usr/local/lib/node_modules/n8n/node_modules/n8n-nodes-base/nodes/Google/Sheet/v2/helpers/GoogleSheet.ts:156:10)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at ExecuteContext.router (/usr/local/lib/node_modules/n8n/node_modules/n8n-nodes-base/nodes/Google/Sheet/v2/actions/router.ts:43:20)\n    at ExecuteContext.execute (/usr/local/lib/node_modules/n8n/node_modules/n8n-nodes-base/nodes/Google/Sheet/v2/GoogleSheetsV2.node.ts:30:10)\n    at WorkflowExecute.executeNode (/usr/local/lib/node_modules/n8n/node_modules/n8n-core/src/execution-engine/workflow-execute.ts:1081:8)\n    at WorkflowExecute.runNode (/usr/local/lib/node_modules/n8n/node_modules/n8n-core/src/execution-engine/workflow-execute.ts:1381:11)\n    at /usr/local/lib/node_modules/n8n/node_modules/n8n-core/src/execution-engine/workflow-execute.ts:1854:27\n    at /usr/local/lib/node_modules/n8n/node_modules/n8n-core/src/execution-engine/workflow-execute.ts:2546:11"
+            },
+            "lastNodeExecuted": "Get row(s) in sheet",
+            "mode": "webhook",
+            "executionContext": {
+              "version": 1,
+              "establishedAt": 1786726574815,
+              "source": "webhook",
+              "triggerNode": {
+                "name": "Webhook",
+                "type": "n8n-nodes-base.webhook"
+              },
+              "redaction": {
+                "version": 2,
+                "production": false,
+                "manual": false,
+                "source": "workflow"
+              }
+            }
+          },
+          "workflow": {
+            "id": "IYShkiWIgKs4G7b6",
+            "name": "IF Node copy"
+          }
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "versionId": "135ede60-92a3-478a-8b98-6e5fc812c487",
+  "activeVersionId": "1a4bf367-f7cb-49cc-af82-b10a79bc7655",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-08-14T15:41:31.916Z",
+      "createdAt": "2026-08-14T15:41:31.916Z",
+      "role": "workflow:owner",
+      "workflowId": "YvJ0TDsc3KRagDmD",
+      "projectId": "aEmg0W5LInvaXu5h"
+    }
+  ],
+  "activeVersion": {
+    "updatedAt": "2026-08-14T17:29:59.000Z",
+    "createdAt": "2026-08-14T17:28:01.269Z",
+    "versionId": "1a4bf367-f7cb-49cc-af82-b10a79bc7655",
+    "workflowId": "YvJ0TDsc3KRagDmD",
+    "nodes": [
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.errorTrigger",
+        "typeVersion": 1,
+        "position": [
+          -2688,
+          -240
+        ],
+        "id": "05120ae3-7934-4352-991e-a43798811d5d",
+        "name": "Error Trigger",
+        "alwaysOutputData": false,
+        "executeOnce": false
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "cfea20d7-5f37-4c51-bf94-77b6e8c96124",
+                "name": "workflow",
+                "value": "={{ $json.workflow }}",
+                "type": "object"
+              },
+              {
+                "id": "f97db1fa-d4d7-4129-a7d7-ea05f98b84d7",
+                "name": "workflow_id",
+                "value": "={{ $json.workflow.id }}",
+                "type": "string"
+              },
+              {
+                "id": "57bf6be7-ab8b-4dad-a16b-5a63433e9264",
+                "name": "execution_url",
+                "value": "={{ $json.execution.url }}",
+                "type": "string"
+              },
+              {
+                "id": "720632af-c4ab-4259-85fa-2c123132deb5",
+                "name": "execution_error_level",
+                "value": "={{ $json.execution.error.level }}",
+                "type": "string"
+              },
+              {
+                "id": "cf5ab82d-269e-462e-83a0-ec26dad1cefd",
+                "name": "execution_error_timestamp",
+                "value": "={{ $json.execution.error.timestamp }}",
+                "type": "number"
+              },
+              {
+                "id": "e524e6ef-fd5f-41c9-8a9e-585d17810e44",
+                "name": "execution_error.node.parameters.documentId.mode",
+                "value": "={{ $json.execution.error.node.parameters.documentId.mode }}",
+                "type": "string"
+              },
+              {
+                "id": "73709517-62f3-4fca-93c0-085ffa08d0e3",
+                "name": "execution_error_message",
+                "value": "={{ $json.execution.error.message }}",
+                "type": "string"
+              },
+              {
+                "id": "7f1e34b1-cb7e-4a13-a45b-54178bf4afd6",
+                "name": "execution_lastNodeExecuted",
+                "value": "={{ $json.execution.lastNodeExecuted }}",
+                "type": "string"
+              },
+              {
+                "id": "e966f713-c1d4-4bda-888f-af4c0e12abff",
+                "name": "execution.id",
+                "value": "={{ $json.execution.id }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -2480,
+          -240
+        ],
+        "id": "380e748a-4d49-4a6d-a553-4d6194bcae99",
+        "name": "Edit Fields"
+      },
+      {
+        "parameters": {
+          "sendTo": "kamulamakaka@gmail.com",
+          "subject": "=Error Notification",
+          "emailType": "text",
+          "message": "=Hello Laura, \n\nWe have an error on {{ $json.workflow.name }}\n\nError Level: {{$json.execution_error_level }}\n\nLikely because {{ $('Error Trigger').item.json.execution.error.message }}\n\nHappened on {{ $json.execution_lastNodeExecuted }}\n\nTo view the error, please click on {{ $json.execution_url }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.2,
+        "position": [
+          -2272,
+          -240
+        ],
+        "id": "38488340-f34d-4531-bc77-160f2bbfe4b4",
+        "name": "Send a message",
+        "webhookId": "04bb03d2-5de4-426f-a6ac-57fb566671d9",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "99tInuffroXLujwm",
+            "name": "Gmail account 2"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Error Trigger": {
+        "main": [
+          [
+            {
+              "node": "Edit Fields",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Edit Fields": {
+        "main": [
+          [
+            {
+              "node": "Send a message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "nodeGroups": [],
+    "authors": "Laura Makaka",
+    "name": "Version 1a4bf367",
+    "description": "",
+    "autosaved": false
+  },
+  "tags": []
+}
