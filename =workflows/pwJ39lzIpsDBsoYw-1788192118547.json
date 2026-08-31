@@ -1,0 +1,222 @@
+{
+  "updatedAt": "2026-08-25T16:44:32.491Z",
+  "createdAt": "2026-08-25T16:32:26.773Z",
+  "id": "pwJ39lzIpsDBsoYw",
+  "name": "My workflow 158",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -448,
+        -64
+      ],
+      "id": "d7cbcb31-fd36-47f9-ba8e-e8249280aa72",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1P0H5261WXl3nlzeuOYs9TR704xGKZXKxlcSMHz0CfNA/edit?gid=562454117#gid=562454117",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 562454117,
+          "mode": "list",
+          "cachedResultName": "Transcript",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1P0H5261WXl3nlzeuOYs9TR704xGKZXKxlcSMHz0CfNA/edit#gid=562454117"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -240,
+        -64
+      ],
+      "id": "2d49d9a4-63de-4c72-95dc-eabf27be42c0",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zaBqUPxNKi3hNy3M",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Summarise  {{ $json.transcript }} and give me the action items",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        160,
+        -224
+      ],
+      "id": "1ddd7770-227f-4ec5-8d21-0fde947d5ad9",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "devstral-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        96,
+        112
+      ],
+      "id": "a9e1af6f-7c87-4223-8ba5-5b1a065360a3",
+      "name": "Mistral Cloud Chat Model",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "gJIHi818kMaD3hpy",
+          "name": "Mistral Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4f0ac871-62cf-4ad7-a443-a6f75efae887",
+              "name": "transcript",
+              "value": "={{ $json.transcript }}",
+              "type": "string"
+            },
+            {
+              "id": "8881b761-8b2c-4e20-ab91-83792dc062e4",
+              "name": "meeting_name",
+              "value": "={{ $json.meeting_name }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -32,
+        -64
+      ],
+      "id": "893d99d5-46a8-45c8-ba12-84351c17996a",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "sendTo": "kamulamakaka@gmail.com",
+        "subject": "n8n zoom ",
+        "emailType": "text",
+        "message": "=Hello  {{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        512,
+        -224
+      ],
+      "id": "9dd90943-aaa5-49c7-9438-9d981f9f61ad",
+      "name": "Send a message",
+      "webhookId": "4e709aec-7050-44b2-b5ad-5830554f41f7",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "99tInuffroXLujwm",
+          "name": "Gmail account 2"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral Cloud Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "7642f277-c545-416b-a0c8-74f239b4eb4b",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-08-25T16:32:26.775Z",
+      "createdAt": "2026-08-25T16:32:26.775Z",
+      "role": "workflow:owner",
+      "workflowId": "pwJ39lzIpsDBsoYw",
+      "projectId": "aEmg0W5LInvaXu5h"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
