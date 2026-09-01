@@ -1,0 +1,142 @@
+{
+  "updatedAt": "2026-07-22T10:19:23.713Z",
+  "createdAt": "2026-07-22T10:19:23.713Z",
+  "id": "GKWyMSlNvImslEwI",
+  "name": "My workflow 131",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -352,
+        128
+      ],
+      "id": "6070c159-251f-4aa5-ada1-98132885d35e",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "sendTo": "zachary.kimotho@moringaschool.com",
+        "emailType": "text",
+        "message": "Assisnment",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "bc1e4555-0c9d-4b05-a075-3b98973be095",
+      "name": "Send a message",
+      "webhookId": "683ab921-b8c9-47cc-b824-eebfd88ae163"
+    },
+    {
+      "parameters": {
+        "sendTo": "zachary.kimotho@moringaschool.com",
+        "subject": "gmail intergration to n8n",
+        "emailType": "text",
+        "message": "hi, ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        272
+      ],
+      "id": "15179989-2a13-4542-922b-8f7e5cae5844",
+      "name": "Send a message1",
+      "webhookId": "d446de74-ac76-461b-b860-413e4a9f0c66"
+    },
+    {
+      "parameters": {
+        "resource": "label"
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "8269c2b9-9653-4400-b45a-f3c9840c287d",
+      "name": "Get many labels",
+      "webhookId": "357bb844-8ed3-49cf-88b0-059896f81620"
+    },
+    {
+      "parameters": {
+        "sendTo": "laura.makaka@student.moringaschool.com",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        352,
+        144
+      ],
+      "id": "3d57ad11-0e91-4cd2-8a02-a1c4b52d1398",
+      "name": "Send a message2",
+      "webhookId": "07d8d956-9fcd-469e-b031-05b861de6499"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Get many labels",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send a message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "026e6f25-cecf-4c27-91be-d8b17f920db0",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-07-22T10:19:23.717Z",
+      "createdAt": "2026-07-22T10:19:23.717Z",
+      "role": "workflow:owner",
+      "workflowId": "GKWyMSlNvImslEwI",
+      "projectId": "aEmg0W5LInvaXu5h"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
