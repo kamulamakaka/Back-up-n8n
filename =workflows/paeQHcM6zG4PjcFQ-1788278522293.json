@@ -1,0 +1,100 @@
+{
+  "updatedAt": "2026-09-01T16:00:08.363Z",
+  "createdAt": "2026-09-01T15:56:16.985Z",
+  "id": "paeQHcM6zG4PjcFQ",
+  "name": "Week 9 Project: The \"High-Value\" Morning Brief",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -496,
+        -16
+      ],
+      "id": "0b6ac2d3-6116-4730-bae8-c4f376fe1a05",
+      "name": "TRIGGER: Daily_8AM"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "645b749e-f1ab-4b8f-aa0f-04d4724e32ea",
+              "name": "highValueLimit",
+              "value": 1000,
+              "type": "number"
+            },
+            {
+              "id": "d712d442-27f2-4baf-91a6-c6903a96d5a1",
+              "name": "environment",
+              "value": "\"PROD\"",
+              "type": "string"
+            },
+            {
+              "id": "24147f6a-87c4-4d40-bb8b-ba81cd1f7c5f",
+              "name": "aiTone",
+              "value": "Professional and Concise",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -288,
+        -16
+      ],
+      "id": "edca7e35-ddb8-40cc-b307-ae651838b5f3",
+      "name": "CONFIG: Thresholds"
+    }
+  ],
+  "connections": {
+    "TRIGGER: Daily_8AM": {
+      "main": [
+        [
+          {
+            "node": "CONFIG: Thresholds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "d14d51ab-a2f2-4187-ad9f-f009e30411e5",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-09-01T15:56:16.987Z",
+      "createdAt": "2026-09-01T15:56:16.987Z",
+      "role": "workflow:owner",
+      "workflowId": "paeQHcM6zG4PjcFQ",
+      "projectId": "aEmg0W5LInvaXu5h"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
