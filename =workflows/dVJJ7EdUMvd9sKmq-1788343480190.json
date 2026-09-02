@@ -1,0 +1,478 @@
+{
+  "updatedAt": "2026-08-24T16:27:32.643Z",
+  "createdAt": "2026-07-22T10:29:18.205Z",
+  "id": "dVJJ7EdUMvd9sKmq",
+  "name": "Kilimai Tech Solns",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        144
+      ],
+      "id": "79dc7794-4ea7-4c09-b2e3-a37502f615a8",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "options": {
+          "maxTokens": 2048,
+          "temperature": 0.4,
+          "maxRetries": 2
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        240,
+        640
+      ],
+      "id": "74f03831-a330-4785-bf14-4c6c426dd6cb",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "tDpr8Zoc5UalZJAa",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "devstral-medium-latest",
+        "options": {
+          "maxTokens": 2048,
+          "temperature": 0.4,
+          "maxRetries": 2,
+          "safeMode": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        384,
+        560
+      ],
+      "id": "6c04f4c5-85fb-40ad-a1f8-d230416df536",
+      "name": "Mistral Cloud Chat Model",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "gJIHi818kMaD3hpy",
+          "name": "Mistral Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{ \"headline\": \"string\", \"summary\": \"string\", \"sentiment\": \"string\", \"urgency_score\": \"number\" }",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        752,
+        368
+      ],
+      "id": "ed076b47-16b7-446b-ab58-d0183843aff4",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Think step-by-step to evaluate the market impact {{ $('HTTP Request- Fetch business News').item.json.data }}\n\nurgency score should be between interger 1-10",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "Expert Financial Analyst are a helpful assistant\n\nInput: \"...<h1>Safaricom shares rise 2%</h1>...\"\nOutput: { \"headline\": \"Safaricom shares rise 2%\", \"entity\": \"Safaricom\" }"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        288,
+        32
+      ],
+      "id": "1943b255-2c27-4a95-a6fd-cc3d4979facd",
+      "name": "Unbreakable AI Analyst"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $now }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        576,
+        512
+      ],
+      "id": "a71cc2d1-9b81-4aad-8718-27e5fcd52daf",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "content": "Workflow\n1. Schedule Daily trigger for 7am \n2.  Add the HTTP to fetch data from\n3. Add Manual Trigger\n4. Add Validation gate data or stop\n5. Implement AI agent add Main Model , Fall back ,Simple Memory and Structured Output Parser\n6.  Add gmail - Send \nAdd condition before Gmail \n7. Get from google Sheets \n",
+        "height": 288,
+        "width": 352
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -112,
+        -32
+      ],
+      "typeVersion": 1,
+      "id": "333f7f1d-58ff-41bd-bb4d-fff16a6b2785",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "model": "devstral-medium-latest",
+        "options": {
+          "maxTokens": 2040,
+          "temperature": 0.4,
+          "maxRetries": 2
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        800,
+        592
+      ],
+      "id": "a7fb2bd0-8b6b-4473-ae5c-2d87e6dafa4a",
+      "name": "Mistral Cloud Chat Model1",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "gJIHi818kMaD3hpy",
+          "name": "Mistral Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://citizen.digital/business",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -112,
+        320
+      ],
+      "id": "8c503fc0-ff3f-46b3-9208-30dc65c6fc9f",
+      "name": "HTTP Request- Fetch business News"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 7
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -256,
+        560
+      ],
+      "id": "57a88c14-95bc-49b7-8243-c53dc15ee687",
+      "name": "Schedule Trigger for 7am"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0c46e453-6e9c-4cf7-8ca5-817a73e6c144",
+              "leftValue": "={{ $json.data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "a34a05c9-ddbe-43cd-bb84-0b58d4b5433b",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        128,
+        320
+      ],
+      "id": "5781eae6-bdf3-4ce9-bdff-a129c6ffe016",
+      "name": "Validation Gate- Urgency"
+    },
+    {
+      "parameters": {
+        "sendTo": "kamulamakaka@gmail.com",
+        "subject": "={{ $json.output.headline }}",
+        "message": "={{ $json.output.summary }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        944,
+        48
+      ],
+      "id": "70400f99-773c-4d76-9616-0d0058c289b0",
+      "name": "Send High Priority urgent email",
+      "webhookId": "d2669300-be9e-44ce-9a4c-9a94c857ead6",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "99tInuffroXLujwm",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1wOFm9FXNy3F0SdiQYL_oZ8yMrW3blk47bHn4Crxmtys/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1wOFm9FXNy3F0SdiQYL_oZ8yMrW3blk47bHn4Crxmtys/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1168,
+        160
+      ],
+      "id": "f9eba399-edc9-4704-a9d5-f69a03fa66e7",
+      "name": "All Data",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zaBqUPxNKi3hNy3M",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "19a33dc1-921c-48bd-9645-9e75928eece0",
+              "leftValue": "={{ $json.output.urgency_score }}",
+              "rightValue": 8,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        704,
+        80
+      ],
+      "id": "80cd9e81-4b39-4d7a-bba0-9ee5474d0ca6",
+      "name": "If"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request- Fetch business News",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Unbreakable AI Analyst",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral Cloud Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Unbreakable AI Analyst",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Unbreakable AI Analyst",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Unbreakable AI Analyst",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unbreakable AI Analyst": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral Cloud Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request- Fetch business News": {
+      "main": [
+        [
+          {
+            "node": "Validation Gate- Urgency",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger for 7am": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request- Fetch business News",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validation Gate- Urgency": {
+      "main": [
+        [
+          {
+            "node": "Unbreakable AI Analyst",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send High Priority urgent email": {
+      "main": [
+        [
+          {
+            "node": "All Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send High Priority urgent email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "435396b6-5111-4772-be4a-f9457e19e3c3",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-07-22T10:29:18.208Z",
+      "createdAt": "2026-07-22T10:29:18.208Z",
+      "role": "workflow:owner",
+      "workflowId": "dVJJ7EdUMvd9sKmq",
+      "projectId": "aEmg0W5LInvaXu5h"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
