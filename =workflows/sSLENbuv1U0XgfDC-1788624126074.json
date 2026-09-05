@@ -1,0 +1,752 @@
+{
+  "updatedAt": "2026-07-26T11:27:51.866Z",
+  "createdAt": "2026-07-26T08:45:13.559Z",
+  "id": "sSLENbuv1U0XgfDC",
+  "name": "Talent Ops - Weekly Hiring Pipeline Monitor",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1
+              ],
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "id": "b870583a-5169-4cf3-88e5-a92ef8113e98",
+      "name": "Weekly Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -816,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Applicants",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "5c39472b-9b52-4eca-81d6-c1efb2781544",
+      "name": "Read Applicants",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -512,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Interview Feedback",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "a5088920-a005-4ac7-ba68-09b34bc9741f",
+      "name": "Read Interview Feedback",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -512,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Historical Data",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "188cf91a-65a3-4cba-bbab-6fb2657c43c0",
+      "name": "Read Historical Data",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -512,
+        656
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "Applicant ID",
+        "joinMode": "enrichInput1",
+        "options": {
+          "fuzzyCompare": false,
+          "multipleMatches": "all"
+        }
+      },
+      "id": "d0e00acd-c572-42c3-aef3-94faffafdb6b",
+      "name": "Join Applicants and Feedback",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -224,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const stageMap = {\n  screening: 'Screening',\n  interview: 'Interview',\n  interviewing: 'Interview',\n  offer: 'Offer',\n  offered: 'Offer'\n};\n\nreturn $input.all().map((item) => {\n  const rawStage = String(item.json.stage ?? item.json.Stage ?? item.json.current_stage ?? '').trim();\n  const normalized = stageMap[rawStage.toLowerCase()] ?? rawStage;\n  return {\n    json: {\n      ...item.json,\n      stage: normalized\n    },\n    pairedItem: item.pairedItem\n  };\n});"
+      },
+      "id": "c54e6321-5467-4b3a-bc86-7e49393ea84f",
+      "name": "Normalize Candidate Stage",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        32,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input.all().map((item) => item.json);\nconst stageMap = {\n  screening: 'Screening',\n  interview: 'Interview',\n  interviewing: 'Interview',\n  offer: 'Offer',\n  offered: 'Offer'\n};\nconst firstValue = (row, names) => {\n  for (const name of names) {\n    if (row[name] !== undefined && row[name] !== null && row[name] !== '') return row[name];\n  }\n  return undefined;\n};\nconst numberValue = (value) => {\n  const parsed = Number(value);\n  return Number.isFinite(parsed) ? parsed : null;\n};\nconst groups = new Map();\n\nfor (const row of rows) {\n  const rawStage = String(firstValue(row, ['stage', 'Stage', 'current_stage', 'Current Stage']) ?? 'Unknown').trim();\n  const stage = stageMap[rawStage.toLowerCase()] ?? rawStage;\n  if (!groups.has(stage)) groups.set(stage, { stage, timeToHire: [], daysInStage: [], count: 0 });\n  const group = groups.get(stage);\n  group.count += 1;\n\n  const timeToHire = numberValue(firstValue(row, [\n    'time_to_hire_days', 'Time to Hire', 'Time-to-Hire', 'days_to_hire', 'Days to Hire'\n  ]));\n  const daysInStage = numberValue(firstValue(row, [\n    'days_in_stage', 'Days in Stage', 'days_active', 'historical_days_in_stage'\n  ]));\n  if (timeToHire !== null) group.timeToHire.push(timeToHire);\n  if (daysInStage !== null) group.daysInStage.push(daysInStage);\n}\n\nconst average = (values) => values.length\n  ? Math.round((values.reduce((sum, value) => sum + value, 0) / values.length) * 10) / 10\n  : null;\n\nreturn Array.from(groups.values()).map((group) => ({\n  json: {\n    stage: group.stage,\n    historical_avg_time_to_hire_days: average(group.timeToHire),\n    historical_avg_days_in_stage: average(group.daysInStage),\n    historical_sample_size: group.count\n  }\n}));"
+      },
+      "id": "ea946f43-7589-429c-ad60-96430af76a36",
+      "name": "Summarize Historical Benchmarks",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        656
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "stage",
+        "joinMode": "enrichInput1",
+        "options": {
+          "fuzzyCompare": false,
+          "multipleMatches": "first"
+        }
+      },
+      "id": "913dfe3d-9a0c-40f4-9a70-2a286300715b",
+      "name": "Add Historical Context",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        320,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "batchSize": 20,
+        "options": {}
+      },
+      "id": "c26266fc-6057-405d-9736-a31b40ecd5ef",
+      "name": "Loop Over Candidates",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        624,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Review Candidate: {{ $json.name }}\nCurrent Stage: {{ $json.stage }}\nDays in Stage: {{ $json.days_active }}\nFeedback Sentiment: {{ $json.feedback_notes }}\nHistorical Average Days in Stage: {{ $json.historical_avg_days_in_stage ?? 'Not available' }}\n\nAssessment:\n1. Is this candidate \"Stuck\"? A candidate is stalled when Days in Stage is greater than 7.\n2. Is the feedback consistent with the current stage?\n3. State the clearest operational risk factor. Do not recommend hiring or rejecting the candidate.\n\nReturn only the required structured JSON. Keep risk_factor to one plain-text sentence without line breaks.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a recruitment pipeline process assessor. Assess workflow health only. Do not make hiring, rejection, ranking, or suitability decisions and do not infer protected or sensitive characteristics. Apply the rule consistently: more than 7 days in one stage means Stalled; otherwise Healthy. Use feedback only to explain process risk or stage inconsistency.",
+          "maxIterations": 2,
+          "enableStreaming": false
+        }
+      },
+      "id": "31d44962-0ddc-4580-9656-578697ae0b5d",
+      "name": "AI Agent 1 - Pipeline Assessor",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        928,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "9dc12290-f5f7-424e-b3e2-071938572b80",
+      "name": "OpenAI Model - Assessor",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        880,
+        688
+      ]
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "={\n  \"type\": \"object\",\n  \"properties\": {\n    \"candidate_health\": {\n      \"type\": \"string\",\n      \"enum\": [\"Healthy\", \"Stalled\"]\n    },\n    \"risk_factor\": {\n      \"type\": \"string\"\n    }\n  },\n  \"required\": [\"candidate_health\", \"risk_factor\"],\n  \"additionalProperties\": false\n}",
+        "autoFix": true
+      },
+      "id": "959d135d-d1fc-40cb-88da-a9199fabf733",
+      "name": "Candidate Health Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1072,
+        688
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "d6651c78-d438-4026-9201-b2411c15733f",
+      "name": "OpenAI Model - JSON Repair",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1168,
+        848
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {
+          "includeUnpaired": false
+        }
+      },
+      "id": "c7142901-874f-4091-90cb-54323bd34a95",
+      "name": "Attach Assessment to Candidate",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1200,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a31476e7-5840-4c04-a62b-26274b3aa7ea",
+              "name": "candidate_health",
+              "value": "={{ $json.output.candidate_health }}",
+              "type": "string"
+            },
+            {
+              "id": "1ac1ddb1-a8a0-49e9-8a8d-c54ae6c23bb7",
+              "name": "risk_factor",
+              "value": "={{ $json.output.risk_factor }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "136e9e11-530f-4350-88d8-53eb4feeb1c0",
+      "name": "Flatten Assessment",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1440,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "20d5a905-bc91-40cc-9023-70a817f7f0d5",
+              "leftValue": "={{ $json.candidate_health }}",
+              "rightValue": "Stalled",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": false
+        }
+      },
+      "id": "d84a5a10-9968-44e2-a99a-c56b342a71ff",
+      "name": "Is Candidate Stalled?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1680,
+        416
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "73681dd7-5115-4512-ac96-31b071afbade",
+      "name": "Recombine Health Branches",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1920,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "candidate_records",
+        "options": {}
+      },
+      "id": "380a9e94-6a33-40fc-8cdf-a35b28343500",
+      "name": "Aggregate Candidate Results",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        896,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const records = $input.first().json.candidate_records ?? [];\nconst stages = ['Screening', 'Interview', 'Offer'];\nconst firstValue = (row, names) => {\n  for (const name of names) {\n    if (row[name] !== undefined && row[name] !== null && row[name] !== '') return row[name];\n  }\n  return undefined;\n};\nconst numberValue = (value) => {\n  const parsed = Number(value);\n  return Number.isFinite(parsed) ? parsed : null;\n};\nconst round = (value) => Math.round(value * 10) / 10;\nconst stageMetrics = Object.fromEntries(stages.map((stage) => [stage, {\n  stage,\n  candidates: 0,\n  stalled: 0,\n  days: [],\n  historicalDays: [],\n  historicalTimeToHire: []\n}]));\nconst quality = {\n  missing_stage: 0,\n  missing_days_active: 0,\n  missing_feedback: 0,\n  missing_historical_benchmark: 0\n};\nlet stalled = 0;\nlet healthy = 0;\nlet totalDays = 0;\nlet daysCount = 0;\n\nfor (const row of records) {\n  const stage = String(firstValue(row, ['stage', 'Stage']) ?? '').trim();\n  const days = numberValue(firstValue(row, ['days_active', 'Days in Stage', 'days_in_stage']));\n  const health = String(firstValue(row, ['candidate_health']) ?? '');\n  const feedback = firstValue(row, ['feedback_notes', 'Feedback Notes', 'feedback']);\n  const historicalDays = numberValue(firstValue(row, ['historical_avg_days_in_stage']));\n  const historicalTTH = numberValue(firstValue(row, ['historical_avg_time_to_hire_days']));\n\n  if (!stage) quality.missing_stage += 1;\n  if (days === null) quality.missing_days_active += 1;\n  if (feedback === undefined) quality.missing_feedback += 1;\n  if (historicalDays === null && historicalTTH === null) quality.missing_historical_benchmark += 1;\n\n  if (health === 'Stalled') stalled += 1;\n  if (health === 'Healthy') healthy += 1;\n  if (days !== null) {\n    totalDays += days;\n    daysCount += 1;\n  }\n\n  if (stageMetrics[stage]) {\n    const metric = stageMetrics[stage];\n    metric.candidates += 1;\n    if (health === 'Stalled') metric.stalled += 1;\n    if (days !== null) metric.days.push(days);\n    if (historicalDays !== null) metric.historicalDays.push(historicalDays);\n    if (historicalTTH !== null) metric.historicalTimeToHire.push(historicalTTH);\n  }\n}\n\nconst summarizedStages = Object.values(stageMetrics).map((metric) => ({\n  stage: metric.stage,\n  candidates: metric.candidates,\n  stalled_candidates: metric.stalled,\n  stalled_rate_pct: metric.candidates ? round((metric.stalled / metric.candidates) * 100) : 0,\n  average_days_active: metric.days.length ? round(metric.days.reduce((a, b) => a + b, 0) / metric.days.length) : null,\n  historical_avg_days_in_stage: metric.historicalDays.length ? round(metric.historicalDays.reduce((a, b) => a + b, 0) / metric.historicalDays.length) : null,\n  historical_avg_time_to_hire_days: metric.historicalTimeToHire.length ? round(metric.historicalTimeToHire.reduce((a, b) => a + b, 0) / metric.historicalTimeToHire.length) : null\n}));\n\nreturn [{\n  json: {\n    aggregated_metrics: {\n      generated_at: new Date().toISOString(),\n      total_candidates: records.length,\n      health_counts: { Healthy: healthy, Stalled: stalled },\n      stalled_rate_pct: records.length ? round((stalled / records.length) * 100) : 0,\n      average_days_active: daysCount ? round(totalDays / daysCount) : null,\n      stage_metrics: summarizedStages,\n      data_quality: quality\n    }\n  }\n}];"
+      },
+      "id": "854649a1-8384-4cab-893e-191ff93bfece",
+      "name": "Build Aggregated Metrics",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1168,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze the pipeline metrics: {{ JSON.stringify($json.aggregated_metrics) }}\n\nIdentify the bottleneck stage among Interview, Offer, and Screening. Base the conclusion on current volume, stalled rate, average days active, and historical benchmarks where available.\n\nProvide exactly 3 actionable recommendations to improve hiring speed. Include a concise executive summary and flag material data-quality gaps.\n\nFormat the output as a valid HTML fragment. Use <b> for important labels and <ul><li> for lists. Return HTML only, with no Markdown or code fences. Do not make hiring or rejection recommendations about individual candidates.",
+        "options": {
+          "systemMessage": "You are a recruitment operations strategic advisor. Analyze process-level pipeline performance and recommend operational improvements. Do not rank candidates, determine suitability, or recommend hiring or rejecting individuals. Keep the email concise, evidence-led, and suitable for an HR Director.",
+          "maxIterations": 3,
+          "enableStreaming": false
+        }
+      },
+      "id": "2be294e8-7d64-4e53-be4c-dd3471ef8d78",
+      "name": "AI Agent 2 - Strategic Advisor",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1440,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "beab22c3-9c8f-4a52-bac1-acfa36eba466",
+      "name": "OpenAI Model - Advisor",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1408,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "replace-with-hr-director@example.com",
+        "subject": "=Weekly Talent Pipeline Strategy Report - {{ $now.format('yyyy-MM-dd') }}",
+        "message": "={{ $json.output }}",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "Talent Ops Monitor"
+        }
+      },
+      "id": "2310dc34-832a-4a90-990e-a50b767eb255",
+      "name": "Email HR Director",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1712,
+        0
+      ],
+      "webhookId": "2562542a-87d8-490c-9930-c491cd81fa6c"
+    },
+    {
+      "parameters": {
+        "content": "## Merging logic\n\n1. **Applicants** is the primary table.\n2. **Interview Feedback** enriches it by matching `Applicant ID`; applicants remain even if feedback is missing.\n3. **Historical Data** is summarized into one benchmark per `stage`, then left-joined to the applicant record to add historical days-in-stage and time-to-hire context without duplicating candidates.",
+        "height": 748,
+        "width": 824,
+        "color": 5
+      },
+      "id": "ebb798bb-1a05-4ee4-a098-b0997c9c6698",
+      "name": "Sticky Note - Merging",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -336,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Batch loop\n\n`Loop Over Candidates` processes **20 candidates per batch**. Agent 1 evaluates each candidate in the batch. Both IF branches—Stalled and Healthy—are appended back together before returning to the loop. The Loop node's **done** output therefore contains the complete assessed population for aggregation and Agent 2.",
+        "height": 900,
+        "width": 1620,
+        "color": 6
+      },
+      "id": "28b60d2d-c875-448b-8a80-8ec434ab9a5b",
+      "name": "Sticky Note - Loop",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        480,
+        -176
+      ]
+    }
+  ],
+  "connections": {
+    "Weekly Schedule": {
+      "main": [
+        [
+          {
+            "node": "Read Applicants",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Read Interview Feedback",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Read Historical Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Applicants": {
+      "main": [
+        [
+          {
+            "node": "Join Applicants and Feedback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Interview Feedback": {
+      "main": [
+        [
+          {
+            "node": "Join Applicants and Feedback",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Read Historical Data": {
+      "main": [
+        [
+          {
+            "node": "Summarize Historical Benchmarks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Join Applicants and Feedback": {
+      "main": [
+        [
+          {
+            "node": "Normalize Candidate Stage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Candidate Stage": {
+      "main": [
+        [
+          {
+            "node": "Add Historical Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize Historical Benchmarks": {
+      "main": [
+        [
+          {
+            "node": "Add Historical Context",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Add Historical Context": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Candidates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Candidates": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Candidate Results",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent 1 - Pipeline Assessor",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Attach Assessment to Candidate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent 1 - Pipeline Assessor": {
+      "main": [
+        [
+          {
+            "node": "Attach Assessment to Candidate",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "OpenAI Model - Assessor": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent 1 - Pipeline Assessor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Candidate Health Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent 1 - Pipeline Assessor",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Model - JSON Repair": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Candidate Health Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Attach Assessment to Candidate": {
+      "main": [
+        [
+          {
+            "node": "Flatten Assessment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Flatten Assessment": {
+      "main": [
+        [
+          {
+            "node": "Is Candidate Stalled?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Candidate Stalled?": {
+      "main": [
+        [
+          {
+            "node": "Recombine Health Branches",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Recombine Health Branches",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Recombine Health Branches": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Candidates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Candidate Results": {
+      "main": [
+        [
+          {
+            "node": "Build Aggregated Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Aggregated Metrics": {
+      "main": [
+        [
+          {
+            "node": "AI Agent 2 - Strategic Advisor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Model - Advisor": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent 2 - Strategic Advisor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent 2 - Strategic Advisor": {
+      "main": [
+        [
+          {
+            "node": "Email HR Director",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "92ba18da-2456-484e-9a37-562cd84f409a",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-07-26T08:45:13.560Z",
+      "createdAt": "2026-07-26T08:45:13.560Z",
+      "role": "workflow:owner",
+      "workflowId": "sSLENbuv1U0XgfDC",
+      "projectId": "aEmg0W5LInvaXu5h"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
