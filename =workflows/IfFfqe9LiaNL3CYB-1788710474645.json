@@ -1,0 +1,324 @@
+{
+  "updatedAt": "2026-08-12T16:50:32.315Z",
+  "createdAt": "2026-08-12T16:50:32.315Z",
+  "id": "IfFfqe9LiaNL3CYB",
+  "name": "Job Application Screener copy",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        96
+      ],
+      "id": "ccd0204e-da77-47ae-8f5b-6b1c2d2d8ab9",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b2994b67-f0e6-4d89-a6b3-6665b3133296",
+              "name": "Name",
+              "value": "John Doe",
+              "type": "string"
+            },
+            {
+              "id": "a8652bdc-7d7b-4a54-9cf1-8a1627bfcf55",
+              "name": "Email",
+              "value": "john@example.com",
+              "type": "string"
+            },
+            {
+              "id": "73468dc8-69c8-4213-b29c-7ea2bec3cccb",
+              "name": "Resume",
+              "value": "Experienced Python developer with 3 years at AWS. Built scalable APIs using FastAPI and managed cloud infrastructure.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -208,
+        96
+      ],
+      "id": "058cbbf0-a76d-4cec-a73d-981d3cce522a",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Name:{{ $json.Name }}\n\nEmail:{{ $json.Email }}\n{{ $json.Resume }}\nResume: ",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are an expert Technical Recruiter. \n\nReview the resume text: \n\nSelection Criteria:\n1. \"Engineering\": Must mention Python, Javascript, or AWS. Minimum 2 years experience.\n2. \"Sales\": Must mention B2B, Lead Generation, or CRM tools.\n3. \"Marketing\": Must mention SEO, Content Strategy, or Social Media Management.\n\nIf the candidate does not meet these specific keywords and experience requirements, mark qualified as false and set department to \"Unassigned\".\n\nBe strict in your evaluation. Only mark as qualified if they clearly meet the criteria."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "fd764dbe-0832-4dc8-98ae-af182ef29af1",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        304
+      ],
+      "id": "8debb634-1c86-47de-a572-41ee69e44ec0",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "tDpr8Zoc5UalZJAa",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{ \n  \"qualified\": \"boolean\", \n  \"department\": \"Engineering | Sales | Marketing | Unassigned\",\n  \"reasoning\": \"string\",\n  \"key_skills\": \"string\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        224,
+        304
+      ],
+      "id": "fe9da885-cae9-4cba-a26e-55fa557b317b",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0c119a2d-39f8-4d25-9701-049227101e71",
+              "leftValue": "={{ $json.output.qualified }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        368,
+        96
+      ],
+      "id": "2d400712-e7b6-4167-bdce-c0b2d2be01a8",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.department }}",
+                    "rightValue": "Engineering",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "7ac4f696-63f6-4a03-92d6-ff94a30f27ca"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Engineering"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "69f0f416-a7ab-42c1-aa38-4b4841a07d00",
+                    "leftValue": "={{ $json.output.department }}",
+                    "rightValue": "Sales",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Sales"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "abfdee52-2832-4150-af0f-c39eb4166974",
+                    "leftValue": "={{ $json.output.department }}",
+                    "rightValue": "Marketing",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Marketing"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "Unassigned"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        560,
+        48
+      ],
+      "id": "fd2db93a-066a-44ac-b9b8-24903c07d159",
+      "name": "Switch"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "d554ba66-57a1-4710-963f-c7045ab9fec7",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-08-12T16:50:32.318Z",
+      "createdAt": "2026-08-12T16:50:32.318Z",
+      "role": "workflow:owner",
+      "workflowId": "IfFfqe9LiaNL3CYB",
+      "projectId": "aEmg0W5LInvaXu5h"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
