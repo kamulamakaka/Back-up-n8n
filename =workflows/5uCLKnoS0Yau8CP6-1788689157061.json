@@ -1,0 +1,552 @@
+{
+  "updatedAt": "2026-07-26T11:47:42.259Z",
+  "createdAt": "2026-07-26T07:15:15.431Z",
+  "id": "5uCLKnoS0Yau8CP6",
+  "name": "Talent Ops Amani. limit with Mistral",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/14tUp4Nwf4EhAuhPUNVP0EtPdiUTlRTWzb1aLP3YdHa4/edit?gid=847775913#gid=847775913",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 847775913,
+          "mode": "list",
+          "cachedResultName": "Applicants",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14tUp4Nwf4EhAuhPUNVP0EtPdiUTlRTWzb1aLP3YdHa4/edit#gid=847775913"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -3280,
+        -1184
+      ],
+      "id": "e2747aaa-b863-4407-907c-b808f78b1957",
+      "name": "Get Data Applicants",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zaBqUPxNKi3hNy3M",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/14tUp4Nwf4EhAuhPUNVP0EtPdiUTlRTWzb1aLP3YdHa4/edit?gid=847775913#gid=847775913",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 313104266,
+          "mode": "list",
+          "cachedResultName": "Interview Feedback",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14tUp4Nwf4EhAuhPUNVP0EtPdiUTlRTWzb1aLP3YdHa4/edit#gid=313104266"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -3296,
+        -880
+      ],
+      "id": "cb1c5384-28cd-4b8c-a0a2-fc5a95906a4a",
+      "name": "Get Data Interview Feedback",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zaBqUPxNKi3hNy3M",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "['Applicant ID']",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -2912,
+        -1024
+      ],
+      "id": "8490369f-fff9-4d63-a3a7-2a777c3d53bf",
+      "name": "Merge",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -3712,
+        -896
+      ],
+      "id": "7ef3f674-c01e-431e-9d02-4e83d6617efd",
+      "name": "Weekly Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/14tUp4Nwf4EhAuhPUNVP0EtPdiUTlRTWzb1aLP3YdHa4/edit?gid=847775913#gid=847775913",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1844499869,
+          "mode": "list",
+          "cachedResultName": "Historical Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14tUp4Nwf4EhAuhPUNVP0EtPdiUTlRTWzb1aLP3YdHa4/edit#gid=1844499869"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -3296,
+        -512
+      ],
+      "id": "cfcc8ab1-35f8-4d38-b86c-faf431b8cdd0",
+      "name": "Get Data Historical",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zaBqUPxNKi3hNy3M",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "Stage",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -2896,
+        -720
+      ],
+      "id": "85def398-e464-494e-9d5a-d56f4722d0fe",
+      "name": "Merge1 + Historical Data",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "maxItems": 20
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        -2688,
+        -720
+      ],
+      "id": "99ed36c2-3b28-4c7f-87e9-a19f592c8a0a",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "batchSize": 5,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -2512,
+        -720
+      ],
+      "id": "55e7c865-4cf8-41fd-9545-d9509cd3d8b9",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "model": "devstral-medium-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        -2496,
+        -384
+      ],
+      "id": "51462f41-c9e5-4247-aa9c-7335a9b4560f",
+      "name": "Mistral Cloud Chat Model",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "gJIHi818kMaD3hpy",
+          "name": "Mistral Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"candidate_health\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"Healthy\",\n        \"Stalled\"\n      ]\n    },\n    \"risk_factor\": {\n      \"type\": \"string\"\n    }\n  },\n  \"required\": [\n    \"candidate_health\",\n    \"risk_factor\"\n  ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -1920,
+        -352
+      ],
+      "id": "a2c801b4-3a56-46f0-9c37-5d745ab0c370",
+      "name": "Structured Output Parser Candidate Health"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -2336,
+        -1248
+      ],
+      "id": "2412b708-a90b-43e3-98b1-669925cc704f",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze the pipeline metrics: {{ $json.data }}\n\nIdentify the bottleneck stage (Interview, Offer, Screening).\nProvide 3 actionable recommendations to improve hiring speed.\n\nFormat the output as valid HTML (use <ul> for lists and <b> for bolding).",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -2096,
+        -1200
+      ],
+      "id": "23f72013-ae31-45a4-8f63-794637a06af9",
+      "name": "Strategic Advisor"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Review Candidate:{{ $json.Name }}\n\nCurrent Stage: {{ $json['Current Stage'] }}\n\nDays in Stage: {{ $json['Days in Stage'] }}\n\nFeedback Sentiment: {{ $json.Sentiment }}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -2288,
+        -608
+      ],
+      "id": "26d82181-4d0b-4103-ae83-a0108e8b5250",
+      "name": "The Pipeline Assessor"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "41b084c8-b5d6-4c5b-b8c4-5f14b825f219",
+              "leftValue": "={{ $json.output.properties.candidate_health }}",
+              "rightValue": "stalled",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1904,
+        -608
+      ],
+      "id": "49681824-6614-412f-9673-28bca9f6ff3e",
+      "name": "If Candidate Health Status"
+    },
+    {
+      "parameters": {
+        "model": "devstral-medium-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        -2128,
+        -1024
+      ],
+      "id": "53b9fd00-f301-4c47-87fc-aaf20703e22e",
+      "name": "Mistral Cloud Chat Model1",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "gJIHi818kMaD3hpy",
+          "name": "Mistral Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "kamulamakaka@gmail.com",
+        "subject": "=Talent Hiring",
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -1776,
+        -1056
+      ],
+      "id": "f7e4526b-8256-4b80-8ee2-e49344285bdd",
+      "name": "Send a message",
+      "webhookId": "7808f13f-e154-4b0c-b14e-6c465e40aaca",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "99tInuffroXLujwm",
+          "name": "Gmail account 2"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Get Data Interview Feedback": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Get Data Applicants": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Weekly Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Data Applicants",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Data Interview Feedback",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Data Historical",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Merge1 + Historical Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Data Historical": {
+      "main": [
+        [
+          {
+            "node": "Merge1 + Historical Data",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge1 + Historical Data": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "The Pipeline Assessor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral Cloud Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "The Pipeline Assessor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser Candidate Health": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "The Pipeline Assessor",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Strategic Advisor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "The Pipeline Assessor": {
+      "main": [
+        [
+          {
+            "node": "If Candidate Health Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Candidate Health Status": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral Cloud Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Strategic Advisor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Strategic Advisor": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "b02df10f-5c5b-4a19-b15c-043e7055fe14",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-07-26T07:15:15.432Z",
+      "createdAt": "2026-07-26T07:15:15.432Z",
+      "role": "workflow:owner",
+      "workflowId": "5uCLKnoS0Yau8CP6",
+      "projectId": "aEmg0W5LInvaXu5h"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
