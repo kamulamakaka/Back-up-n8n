@@ -1,0 +1,872 @@
+{
+  "updatedAt": "2026-08-31T18:03:30.075Z",
+  "createdAt": "2026-08-31T18:03:26.884Z",
+  "id": "SCnoAM0CxxyfoMeN",
+  "name": "Nairobi Nexus Newsletter",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 14 * * 5"
+            }
+          ]
+        }
+      },
+      "id": "00afd142-d086-4fc8-b53b-c53cf86b51f0",
+      "name": "Friday 14:00 Nairobi",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -656,
+        640
+      ],
+      "notes": "Timezone Africa/Nairobi — every Friday at 14:00."
+    },
+    {
+      "parameters": {
+        "url": "https://techcabal.com/feed/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "application/rss+xml, application/xml, text/html, */*"
+            }
+          ]
+        },
+        "options": {
+          "redirect": {
+            "redirect": {
+              "maxRedirects": 5
+            }
+          },
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 20000
+        }
+      },
+      "id": "bffd227b-8a35-4fe7-8fdb-0245dba6fdf2",
+      "name": "HTTP TechCabal",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -336,
+        160
+      ],
+      "onError": "continueRegularOutput",
+      "notes": "Continue On Fail: if this house is offline, its Field Reporter is skipped and the other four branches still run."
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Raw feed from TechCabal:\n{{ $json.data || $json.body || $json }}\n\nExtract the single most important tech headline from this raw HTML/JSON. Output as JSON: {\"source\": \"TechCabal\", \"headline\": \"Text\"}.",
+        "options": {
+          "systemMessage": "You are a Field Reporter for Nairobi Nexus. Extract only the single most important tech/business headline. Reply with pure JSON only — no markdown fences."
+        }
+      },
+      "id": "f73025a0-b947-4113-8039-7c9b968ed7f1",
+      "name": "Summarize TechCabal",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -16,
+        160
+      ],
+      "notes": "Field Reporter — TechCabal"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {
+          "maxTokens": 400,
+          "temperature": 0.2
+        }
+      },
+      "id": "6e78e08e-390c-4926-ab00-368569d18e1a",
+      "name": "LM TechCabal",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -16,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://news.google.com/rss/search?q=site:businessdailyafrica.com+when:7d&hl=en-KE&gl=KE&ceid=KE:en",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "application/rss+xml, application/xml, text/html, */*"
+            }
+          ]
+        },
+        "options": {
+          "redirect": {
+            "redirect": {
+              "maxRedirects": 5
+            }
+          },
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 20000
+        }
+      },
+      "id": "f12a86a3-75d6-46b8-93d3-70114c2365cc",
+      "name": "HTTP Business Daily",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -336,
+        352
+      ],
+      "onError": "continueRegularOutput",
+      "notes": "Continue On Fail: if this house is offline, its Field Reporter is skipped and the other four branches still run."
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Raw feed from Business Daily:\n{{ $json.data || $json.body || $json }}\n\nExtract the single most important tech headline from this raw HTML/JSON. Output as JSON: {\"source\": \"Business Daily\", \"headline\": \"Text\"}.",
+        "options": {
+          "systemMessage": "You are a Field Reporter for Nairobi Nexus. Extract only the single most important tech/business headline. Reply with pure JSON only — no markdown fences."
+        }
+      },
+      "id": "500106b9-d345-4e97-8615-a3d2c047440e",
+      "name": "Summarize Business Daily",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -16,
+        352
+      ],
+      "notes": "Field Reporter — Business Daily"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {
+          "maxTokens": 400,
+          "temperature": 0.2
+        }
+      },
+      "id": "4e271b37-d897-4b89-9394-0888f8affcfd",
+      "name": "LM Business Daily",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -16,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://www.the-star.co.ke/news",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "application/rss+xml, application/xml, text/html, */*"
+            }
+          ]
+        },
+        "options": {
+          "redirect": {
+            "redirect": {
+              "maxRedirects": 5
+            }
+          },
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 20000
+        }
+      },
+      "id": "ec06af23-50b4-42c6-adf4-2128466f05cc",
+      "name": "HTTP The Star",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -336,
+        560
+      ],
+      "onError": "continueRegularOutput",
+      "notes": "Continue On Fail: if this house is offline, its Field Reporter is skipped and the other four branches still run."
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Raw feed from The Star:\n{{ $json.data || $json.body || $json }}\n\nExtract the single most important tech headline from this raw HTML/JSON. Output as JSON: {\"source\": \"The Star\", \"headline\": \"Text\"}.",
+        "options": {
+          "systemMessage": "You are a Field Reporter for Nairobi Nexus. Extract only the single most important tech/business headline. Reply with pure JSON only — no markdown fences."
+        }
+      },
+      "id": "bd710733-f9d5-43dd-b301-4087e983ff55",
+      "name": "Summarize The Star",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -16,
+        560
+      ],
+      "notes": "Field Reporter — The Star"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {
+          "maxTokens": 400,
+          "temperature": 0.2
+        }
+      },
+      "id": "cb754ce8-6f11-4214-83b6-6dbc6c2c8538",
+      "name": "LM The Star",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -16,
+        432
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://www.standardmedia.co.ke/rss/business.php",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "application/rss+xml, application/xml, text/html, */*"
+            }
+          ]
+        },
+        "options": {
+          "redirect": {
+            "redirect": {
+              "maxRedirects": 5
+            }
+          },
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 20000
+        }
+      },
+      "id": "cb94d6fc-adc7-4665-b1c8-072ee34e486b",
+      "name": "HTTP The Standard",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -336,
+        752
+      ],
+      "onError": "continueRegularOutput",
+      "notes": "Continue On Fail: uses RSS feed (homepage often returns Cloudflare 522). If offline, Field Reporter is skipped."
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Raw feed from The Standard:\n{{ $json.data || $json.body || $json }}\n\nExtract the single most important tech headline from this raw HTML/JSON. Output as JSON: {\"source\": \"The Standard\", \"headline\": \"Text\"}.",
+        "options": {
+          "systemMessage": "You are a Field Reporter for Nairobi Nexus. Extract only the single most important tech/business headline. Reply with pure JSON only — no markdown fences."
+        }
+      },
+      "id": "83a5d090-4d97-447c-8e6b-0853cb9c927a",
+      "name": "Summarize The Standard",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -16,
+        752
+      ],
+      "notes": "Field Reporter — The Standard"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {
+          "maxTokens": 400,
+          "temperature": 0.2
+        }
+      },
+      "id": "ef2b2f02-a593-43ee-b600-aa477412a7d7",
+      "name": "LM The Standard",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -16,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://news.google.com/rss/search?q=site:kenyanwallstreet.com+when:7d&hl=en-KE&gl=KE&ceid=KE:en",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "application/rss+xml, application/xml, text/html, */*"
+            }
+          ]
+        },
+        "options": {
+          "redirect": {
+            "redirect": {
+              "maxRedirects": 5
+            }
+          },
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 20000
+        }
+      },
+      "id": "c5260678-923c-4db0-b2b6-208cd13bdf60",
+      "name": "HTTP Kenyan Wall Street",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -336,
+        960
+      ],
+      "onError": "continueRegularOutput",
+      "notes": "Continue On Fail: homepage is Cloudflare-blocked; uses Google News RSS for KWS stories."
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Raw feed from Kenyan Wall Street:\n{{ $json.data || $json.body || $json }}\n\nExtract the single most important tech headline from this raw HTML/JSON. Output as JSON: {\"source\": \"Kenyan Wall Street\", \"headline\": \"Text\"}.",
+        "options": {
+          "systemMessage": "You are a Field Reporter for Nairobi Nexus. Extract only the single most important tech/business headline. Reply with pure JSON only — no markdown fences."
+        }
+      },
+      "id": "5340ddc3-12f0-494b-bfe5-7cdf232840d9",
+      "name": "Summarize Kenyan Wall Street",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -16,
+        960
+      ],
+      "notes": "Field Reporter — Kenyan Wall Street"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {
+          "maxTokens": 400,
+          "temperature": 0.2
+        }
+      },
+      "id": "bf31ed6d-4d59-484a-812f-3de137cd6d9a",
+      "name": "LM Kenyan Wall Street",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -16,
+        832
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "7b7828e1-f722-49a1-9081-3fd488e5ebfc",
+      "name": "Merge Field Reports",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        304,
+        560
+      ],
+      "notes": "Append mode — aggregates clean JSON summaries from successful branches into one list."
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Field reports (successful sources only):\n{{ JSON.stringify($input.all().map(i => i.json), null, 2) }}\n\nSynthesize these stories into a newsletter intro.\nConstraints:\n1. Strictly under 200 words.\n2. Use Kenyan slang (e.g., 'Bazeng', 'Form ni gani').\n3. Format as Markdown.",
+        "options": {
+          "systemMessage": "You are Kamau, the Witty Tech Editor at Nairobi Nexus. Write a sharp Friday newsletter intro for Kenyan readers. Stay under 200 words. Use Kenyan slang naturally. Output Markdown only."
+        }
+      },
+      "id": "ddca0fbf-60ac-4821-9cd5-6b41a319efc8",
+      "name": "Chief Editor Kamau",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        608,
+        480
+      ],
+      "notes": "Primary high-intelligence model. On timeout/error, Error Trigger routes to Backup Editor."
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o"
+        },
+        "options": {
+          "maxTokens": 600,
+          "temperature": 0.7
+        }
+      },
+      "id": "b61bd6b9-02f1-48f6-a9cd-c7146360c758",
+      "name": "LM Chief Editor (GPT-4o)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        608,
+        304
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "e23bf949-450a-4eca-a3e1-1b38ee4ba252",
+      "name": "Error Trigger (Chief Editor)",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        608,
+        704
+      ],
+      "notes": "Fires if Primary Chief Editor fails (timeout/model error). Routes to Backup AI Agent."
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Primary editor failed. Produce a simpler newsletter intro from whatever field reports are available.\n\nConstraints:\n1. Under 200 words.\n2. Kenyan slang where natural.\n3. Markdown format.\n\nInput context:\n{{ JSON.stringify($json, null, 2) }}",
+        "options": {
+          "systemMessage": "You are the Backup Editor for Nairobi Nexus. Write a short, clear Friday newsletter intro in Markdown. Under 200 words. Light Kenyan slang OK."
+        }
+      },
+      "id": "ea21e11d-ee30-4088-b532-e405c2f24ecc",
+      "name": "Backup Editor (GPT-4o-mini)",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        848,
+        704
+      ],
+      "notes": "Fallback when primary Chief Editor times out or errors."
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {
+          "maxTokens": 500,
+          "temperature": 0.5
+        }
+      },
+      "id": "81410c03-21fd-4caf-9a30-5b4c817b6225",
+      "name": "LM Backup Editor",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        848,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "NEWSLETTER_MANAGER_SHEET_ID"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "Drafts"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $now.setZone('Africa/Nairobi').toFormat('ccc, dd LLL yyyy, HH:mm') }}",
+            "Successful Sources": "={{ $input.all().length }}/5 sources",
+            "Draft Body": "={{ $json.output || $json.text || $json }}",
+            "Model Used": "={{ $json.model || 'gpt-4o' }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "b320fc53-8fbe-4d6e-85cc-29ea0f21b5ae",
+      "name": "Log to NewsletterManager",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1136,
+        480
+      ],
+      "notes": "Appends row to Drafts tab: Date, Successful Sources, Draft Body, Model Used."
+    },
+    {
+      "parameters": {
+        "sendTo": "marketing@nairobinexus.ke",
+        "subject": "={{ 'Nairobi Nexus Friday Draft — ' + $now.setZone('Africa/Nairobi').toFormat('dd LLL yyyy') }}",
+        "emailType": "text",
+        "message": "={{ $json.output || $json.text || $json['Draft Body'] || $json }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "550030f0-43e8-42e8-9912-fec7663879bc",
+      "name": "Email Marketing for Approval",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1376,
+        480
+      ],
+      "webhookId": "4bbc5db7-568d-46d0-9048-6a1dfdd1f099",
+      "notes": "Sends Markdown draft to marketing team for approval. Prefer draft mode in production if available."
+    }
+  ],
+  "connections": {
+    "Friday 14:00 Nairobi": {
+      "main": [
+        [
+          {
+            "node": "HTTP TechCabal",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Business Daily",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP The Star",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP The Standard",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Kenyan Wall Street",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP TechCabal": {
+      "main": [
+        [
+          {
+            "node": "Summarize TechCabal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LM TechCabal": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Summarize TechCabal",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Business Daily": {
+      "main": [
+        [
+          {
+            "node": "Summarize Business Daily",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LM Business Daily": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Summarize Business Daily",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP The Star": {
+      "main": [
+        [
+          {
+            "node": "Summarize The Star",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LM The Star": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Summarize The Star",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP The Standard": {
+      "main": [
+        [
+          {
+            "node": "Summarize The Standard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LM The Standard": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Summarize The Standard",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Kenyan Wall Street": {
+      "main": [
+        [
+          {
+            "node": "Summarize Kenyan Wall Street",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LM Kenyan Wall Street": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Summarize Kenyan Wall Street",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize TechCabal": {
+      "main": [
+        [
+          {
+            "node": "Merge Field Reports",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize Business Daily": {
+      "main": [
+        [
+          {
+            "node": "Merge Field Reports",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Field Reports": {
+      "main": [
+        [
+          {
+            "node": "Chief Editor Kamau",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LM Chief Editor (GPT-4o)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Chief Editor Kamau",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chief Editor Kamau": {
+      "main": [
+        [
+          {
+            "node": "Log to NewsletterManager",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Trigger (Chief Editor)": {
+      "main": [
+        [
+          {
+            "node": "Backup Editor (GPT-4o-mini)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LM Backup Editor": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Backup Editor (GPT-4o-mini)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Backup Editor (GPT-4o-mini)": {
+      "main": [
+        [
+          {
+            "node": "Log to NewsletterManager",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log to NewsletterManager": {
+      "main": [
+        [
+          {
+            "node": "Email Marketing for Approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "1ba6903b-c9f9-431b-adf5-d7203ea06dc2",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-08-31T18:03:26.886Z",
+      "createdAt": "2026-08-31T18:03:26.886Z",
+      "role": "workflow:owner",
+      "workflowId": "SCnoAM0CxxyfoMeN",
+      "projectId": "aEmg0W5LInvaXu5h"
+    }
+  ],
+  "activeVersion": null,
+  "tags": [
+    {
+      "updatedAt": "2026-08-23T14:26:22.150Z",
+      "createdAt": "2026-08-23T14:26:22.150Z",
+      "id": "DBB2Wx1ClWFt3aP6",
+      "name": "newsletter"
+    },
+    {
+      "updatedAt": "2026-08-23T14:26:22.152Z",
+      "createdAt": "2026-08-23T14:26:22.152Z",
+      "id": "Oyn3BAc1SqgJKv5c",
+      "name": "parallel"
+    },
+    {
+      "updatedAt": "2026-08-23T14:26:22.151Z",
+      "createdAt": "2026-08-23T14:26:22.151Z",
+      "id": "cB84asup9Z3o6B0V",
+      "name": "kenya"
+    }
+  ]
+}
