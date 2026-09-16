@@ -1,0 +1,92 @@
+{
+  "updatedAt": "2026-07-22T08:28:48.763Z",
+  "createdAt": "2026-07-22T08:28:44.611Z",
+  "id": "sn2VmO2TQzenfk5F",
+  "name": "My workflow 102",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        -48
+      ],
+      "id": "03c8478f-a927-4381-be33-0efc87aa01f5",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a689a2a0-8200-4929-843c-af71d45a2d8d",
+              "name": "Email",
+              "value": "test@student.com",
+              "type": "string"
+            },
+            {
+              "id": "f865c87d-d131-48a5-a275-30d2272ac845",
+              "name": "Course",
+              "value": "Ai Agents",
+              "type": "string"
+            },
+            {
+              "id": "dbe030d9-dd3c-4d51-8293-081d4c751339",
+              "name": "Status",
+              "value": "In Progress",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -16,
+        -48
+      ],
+      "id": "eaa8778e-3a3a-4329-9435-e0c8c1b661cb",
+      "name": "Edit Fields"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "e4de1a94-41c3-46b2-aaf5-af2a59e43e22",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-07-22T08:28:44.616Z",
+      "createdAt": "2026-07-22T08:28:44.616Z",
+      "role": "workflow:owner",
+      "workflowId": "sn2VmO2TQzenfk5F",
+      "projectId": "aEmg0W5LInvaXu5h"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
