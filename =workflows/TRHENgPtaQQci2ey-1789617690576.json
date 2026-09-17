@@ -1,0 +1,124 @@
+{
+  "updatedAt": "2026-08-10T16:11:48.865Z",
+  "createdAt": "2026-08-10T16:06:57.756Z",
+  "id": "TRHENgPtaQQci2ey",
+  "name": "My workflow 156",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        -16
+      ],
+      "id": "afdfd889-294d-4955-92ea-48632c1ea3d4",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ae208c93-1738-4543-9122-2937bbfabd66",
+              "name": "file_url",
+              "value": "https://drive.google.com/file/d/1_1jxTnoWnLoAc4DbstccVWFWJ3y1kYnh/view",
+              "type": "string"
+            },
+            {
+              "id": "e54b146b-4904-4366-bc6a-aa6865ab65cb",
+              "name": "",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        32,
+        -16
+      ],
+      "id": "145d1baa-b1ed-4fe1-8b30-0745a7867cac",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.file_url }}",
+          "mode": "url"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        240,
+        -16
+      ],
+      "id": "b76a85e8-1e77-48b8-ad34-b2a4393ad504",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "DtA5FcsnfwNak6o0",
+          "name": "Google Drive account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "39c66657-6be1-416d-8a0a-2b91a469b72d",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-08-10T16:06:57.760Z",
+      "createdAt": "2026-08-10T16:06:57.760Z",
+      "role": "workflow:owner",
+      "workflowId": "TRHENgPtaQQci2ey",
+      "projectId": "aEmg0W5LInvaXu5h"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
