@@ -1,0 +1,556 @@
+{
+  "updatedAt": "2026-08-07T16:55:23.945Z",
+  "createdAt": "2026-08-06T15:52:22.870Z",
+  "id": "eGY7sbIJXdE1RoiO",
+  "name": "Week 6 Assignement Laura Makaka; AI-Powered Customer Support Triage",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "path": "new-ticket",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "d54e70d0-d450-4b5b-a9a3-f63af78f3050",
+      "name": "New Ticket Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        12736,
+        -1360
+      ],
+      "webhookId": "e8efb421-6f90-4a42-af50-0ff4e63a7c65"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://docs.google.com/spreadsheets/d/1ceqvFqT_zJHDkAkq_O_Ttuuj0tZzNN_Cw5UYlCQLIJY/edit?gid=1181647309#gid=1181647309",
+          "__regex": "https:\\/\\/(?:drive|docs)\\.google\\.com(?:\\/.*|)\\/d\\/([0-9a-zA-Z\\-_]+)(?:\\/.*|)"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1181647309,
+          "mode": "list",
+          "cachedResultName": "SupportTickets",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ceqvFqT_zJHDkAkq_O_Ttuuj0tZzNN_Cw5UYlCQLIJY/edit#gid=1181647309"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Status",
+              "lookupValue": "New"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5f6a80b8-c626-4e4c-babf-2dc84b465eb0",
+      "name": "Read New Support Tickets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        13680,
+        -1648
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zaBqUPxNKi3hNy3M",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Current ticket:\n{{ $json.TicketID }}\nAll tickets in this webhook batch:\n{{ JSON.stringify($('Read New Support Tickets').all().map(item => item.json)) }}\n\nClean the current ticket.\n1. Standardize Category to exactly one of: Billing, Technical, General. Use the Issue text as the main evidence when the raw Category is unclear.\n2. Decide whether the current ticket is a duplicate. A duplicate must describe the same underlying issue for the same customer email as another ticket in this batch. Keep the earliest TicketID and mark only the later matching ticket as duplicate. Similar issues from different customers are not duplicates.\n\nReturn only the structured output requested by the parser.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are the Janitor stage of a support-ticket workflow. Clean categories conservatively and identify true duplicates without losing distinct customer issues."
+        }
+      },
+      "id": "f320e52c-3862-4542-b5dd-4e69c279cdb6",
+      "name": "AI Agent 1 - Janitor",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        14160,
+        -1728
+      ]
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"clean_category\": \"Technical\",\n  \"is_duplicate\": false\n}"
+      },
+      "id": "50561a5f-111a-4621-b13a-2e824ff71f3a",
+      "name": "Janitor Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        14560,
+        -1104
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a225239a-0a5b-4530-8379-d857214a91d9",
+              "leftValue": "={{ $json.output.is_duplicate }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "879b8fb4-0abd-4822-aeab-1880c4dc7967",
+      "name": "Is Unique?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        14704,
+        -1568
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze this support issue:\n{{ $('Read New Support Tickets').item.json.Issue }}\n\nClean category from the Janitor stage:\n{{ $json.output.clean_category }}\n\n1. Classify urgency as exactly High, Medium, or Low.\n- High: active outage, security/account compromise, blocked payment or critical transaction, data loss, safety, legal/compliance exposure, or a severe issue stopping business operations.\n- Medium: material degradation or customer-impacting issue that needs prompt attention but has a workaround or limited impact.\n- Low: information request, minor inconvenience, general query, or non-urgent administrative change.\n2. Write a short, polite suggested response that acknowledges the issue and sets an appropriate next step. Do not promise a resolution time that was not provided.\n\nReturn only the structured output requested by the parser.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are the Triage Officer stage of a customer-support workflow. Apply the urgency rules consistently and draft concise, professional responses."
+        }
+      },
+      "id": "f614afec-5156-4a73-9081-2cc94c512a12",
+      "name": "AI Agent 2 - Triage Officer",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        15008,
+        -1744
+      ]
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"urgency\": \"High\",\n  \"suggested_response\": \"Thank you for reporting this issue. We have escalated it for immediate investigation and will update you as soon as more information is available.\"\n}"
+      },
+      "id": "0d48da14-459d-4cfe-8630-86028b4d7efc",
+      "name": "Triage Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        15344,
+        -1488
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6a53d20f-a751-4c79-85ca-8bf31758801c",
+              "name": "TicketID",
+              "value": "={{ $('Read New Support Tickets').item.json.TicketID }}",
+              "type": "string"
+            },
+            {
+              "id": "5b0dd382-091e-43fb-aa48-c2a45e28536a",
+              "name": "CustomerEmail",
+              "value": "={{ $('Read New Support Tickets').item.json.CustomerEmail }}",
+              "type": "string"
+            },
+            {
+              "id": "2f878fff-11c0-4901-8e19-952b18dc28b2",
+              "name": "Issue",
+              "value": "={{ $('Read New Support Tickets').item.json.Issue }}",
+              "type": "string"
+            },
+            {
+              "id": "08f75b8d-f251-4c72-9628-f257458bbbe3",
+              "name": "CleanedCategory",
+              "value": "={{ $('AI Agent 1 - Janitor').item.json.output.clean_category }}",
+              "type": "string"
+            },
+            {
+              "id": "3771f510-bd54-4fbd-b9c2-94f809393300",
+              "name": "Urgency",
+              "value": "={{ $json.output.urgency }}",
+              "type": "string"
+            },
+            {
+              "id": "c4647217-2639-4cc8-a87b-c8aa1ca423d4",
+              "name": "SuggestedResponse",
+              "value": "={{ $json.output.suggested_response }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "77bf64d2-da13-4a4a-b1d3-804523494edb",
+      "name": "Prepare Output Row",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        15168,
+        -1360
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "2fe24507-742c-48aa-b41a-5966c3a1b838",
+              "leftValue": "={{ $json.Urgency }}",
+              "rightValue": "High",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "c0bd0a38-e9cd-40e9-a9dd-678454207a95",
+      "name": "High Urgency?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        15408,
+        -1360
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "kamulamakaka@gmail.com",
+        "subject": "=URGENT Ticket: {{ $json.TicketID }} - {{ $json.Issue }}",
+        "message": "=<p><strong>High-urgency support ticket</strong></p><p><strong>Ticket ID:</strong> {{ $json.TicketID }}</p><p><strong>Customer:</strong> {{ $json.CustomerEmail }}</p><p><strong>Category:</strong> {{ $json.CleanedCategory }}</p><p><strong>Issue:</strong> {{ $json.Issue }}</p><p><strong>Suggested response:</strong> {{ $json.SuggestedResponse }}</p>",
+        "options": {}
+      },
+      "id": "01c53f62-c30e-4c8f-9b6d-21529fdb6209",
+      "name": "Send Urgent Alert",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        15680,
+        -1568
+      ],
+      "webhookId": "0b042a8f-3050-4bba-bb43-3275291ddc43",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "99tInuffroXLujwm",
+          "name": "Gmail account 2"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://docs.google.com/spreadsheets/d/1ceqvFqT_zJHDkAkq_O_Ttuuj0tZzNN_Cw5UYlCQLIJY/edit?gid=1181647309#gid=1181647309",
+          "__regex": "https:\\/\\/(?:drive|docs)\\.google\\.com(?:\\/.*|)\\/d\\/([0-9a-zA-Z\\-_]+)(?:\\/.*|)"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1698063609,
+          "mode": "list",
+          "cachedResultName": "TriagedTickets",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ceqvFqT_zJHDkAkq_O_Ttuuj0tZzNN_Cw5UYlCQLIJY/edit#gid=1698063609"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "TicketID": "={{ $('Prepare Output Row').item.json.TicketID }}",
+            "CleanedCategory": "={{ $('Prepare Output Row').item.json.CleanedCategory }}",
+            "Urgency": "={{ $('Prepare Output Row').item.json.Urgency }}",
+            "SuggestedResponse": "={{ $('Prepare Output Row').item.json.SuggestedResponse }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "TicketID",
+              "displayName": "TicketID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "CleanedCategory",
+              "displayName": "CleanedCategory",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Urgency",
+              "displayName": "Urgency",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "SuggestedResponse",
+              "displayName": "SuggestedResponse",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "3bc484c1-c6db-4ed5-96c1-92f083aa3f3c",
+      "name": "Append to TriagedTickets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        15952,
+        -1344
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zaBqUPxNKi3hNy3M",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Setup before first run\n1. Select Google Sheets, OpenAI, and Gmail credentials.\n2. Replace `YOUR_EMAIL@example.com`.\n3. Confirm that both Google Sheets nodes point to the imported `SupportTickets` spreadsheet.\n4. Activate the workflow, then POST to the production webhook URL.\n\nThe Janitor compares each ticket with the full batch and drops only later duplicates. All unique tickets are logged; only High urgency tickets trigger email.",
+        "height": 372,
+        "width": 830,
+        "color": 5
+      },
+      "id": "47ac31ff-2dd9-4cdb-a945-561d05a99592",
+      "name": "Configuration Notes",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        12720,
+        -1952
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        13504,
+        -1136
+      ],
+      "id": "89ed086d-a74d-4398-86c7-97a44bc69f53",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "tDpr8Zoc5UalZJAa",
+          "name": "OpenRouter account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "New Ticket Webhook": {
+      "main": [
+        [
+          {
+            "node": "Read New Support Tickets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read New Support Tickets": {
+      "main": [
+        [
+          {
+            "node": "AI Agent 1 - Janitor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Janitor Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent 1 - Janitor",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent 1 - Janitor": {
+      "main": [
+        [
+          {
+            "node": "Is Unique?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Unique?": {
+      "main": [
+        [
+          {
+            "node": "AI Agent 2 - Triage Officer",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Output Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Triage Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent 2 - Triage Officer",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent 2 - Triage Officer": {
+      "main": [
+        [
+          {
+            "node": "Prepare Output Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Output Row": {
+      "main": [
+        [
+          {
+            "node": "High Urgency?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "High Urgency?": {
+      "main": [
+        [
+          {
+            "node": "Send Urgent Alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append to TriagedTickets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Urgent Alert": {
+      "main": [
+        [
+          {
+            "node": "Append to TriagedTickets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent 1 - Janitor",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "AI Agent 2 - Triage Officer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "593294d6-8f2a-4426-8948-20a745a32937",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-08-06T15:52:22.872Z",
+      "createdAt": "2026-08-06T15:52:22.872Z",
+      "role": "workflow:owner",
+      "workflowId": "eGY7sbIJXdE1RoiO",
+      "projectId": "aEmg0W5LInvaXu5h"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
