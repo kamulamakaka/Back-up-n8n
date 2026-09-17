@@ -1,0 +1,271 @@
+{
+  "updatedAt": "2026-08-04T06:04:10.254Z",
+  "createdAt": "2026-08-03T16:56:42.544Z",
+  "id": "nnhT3Ou0IWdH6PiS",
+  "name": "My workflow 151",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -320,
+        -48
+      ],
+      "id": "47dca4bb-bb1e-4c3b-9ee0-eb4b8e569a14",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1julxIk_S3Zymw2WnGqbqxdSLphpkzion4yW-YnBZMO0/edit?gid=1024283007#gid=1024283007",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1024283007,
+          "mode": "list",
+          "cachedResultName": "Q3",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1julxIk_S3Zymw2WnGqbqxdSLphpkzion4yW-YnBZMO0/edit#gid=1024283007"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -96,
+        -192
+      ],
+      "id": "81637a1b-46c8-4349-9ddc-de4a4d6f1983",
+      "name": "Q3 Report",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zaBqUPxNKi3hNy3M",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1julxIk_S3Zymw2WnGqbqxdSLphpkzion4yW-YnBZMO0/edit?gid=1024283007#gid=1024283007",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 929349863,
+          "mode": "list",
+          "cachedResultName": "Q4",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1julxIk_S3Zymw2WnGqbqxdSLphpkzion4yW-YnBZMO0/edit#gid=929349863"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -96,
+        80
+      ],
+      "id": "062aad4a-d521-46b3-8d9b-a549bae90f55",
+      "name": "Q4",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zaBqUPxNKi3hNy3M",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        176,
+        -64
+      ],
+      "id": "1504d6c9-1bb8-4f34-a4f6-f0c90010d945",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1xjwxXg0Ytrbj_56MvDfPHg45HulV1LMkqwMY9JcqLJ0/edit?gid=1024283007#gid=1024283007",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1546833492,
+          "mode": "list",
+          "cachedResultName": "TOTAL SALES",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xjwxXg0Ytrbj_56MvDfPHg45HulV1LMkqwMY9JcqLJ0/edit#gid=1546833492"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "OrderID",
+              "displayName": "OrderID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "CustomerName",
+              "displayName": "CustomerName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Product",
+              "displayName": "Product",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Quantity",
+              "displayName": "Quantity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "OrderDate",
+              "displayName": "OrderDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        384,
+        -64
+      ],
+      "id": "2720ed47-b37e-4e1e-9caf-e7313a0c3479",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zaBqUPxNKi3hNy3M",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Q3 Report",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Q4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Q3 Report": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Q4": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "fce596bd-997b-4c8d-a3ed-c85f98cd27cd",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-08-03T16:56:42.546Z",
+      "createdAt": "2026-08-03T16:56:42.546Z",
+      "role": "workflow:owner",
+      "workflowId": "nnhT3Ou0IWdH6PiS",
+      "projectId": "aEmg0W5LInvaXu5h"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
