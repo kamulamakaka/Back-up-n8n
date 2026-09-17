@@ -1,0 +1,116 @@
+{
+  "updatedAt": "2026-08-05T16:42:58.368Z",
+  "createdAt": "2026-08-05T16:30:56.072Z",
+  "id": "dPqAAfIFnVORuDpc",
+  "name": "My workflow 153",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -704,
+        -48
+      ],
+      "id": "64d04a96-353c-4982-bc90-5d7c8169e898",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1Usdsr5pZQJko-AVBAOzLb2q9Rd-k7Z28L_4bDK6mKwY/edit?gid=508096228#gid=508096228",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2126608382,
+          "mode": "list",
+          "cachedResultName": "RawOrders",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Usdsr5pZQJko-AVBAOzLb2q9Rd-k7Z28L_4bDK6mKwY/edit#gid=2126608382"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -496,
+        -48
+      ],
+      "id": "d08b2ea3-6223-4598-9f66-f398f3c8668e",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zaBqUPxNKi3hNy3M",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "compare": "selectedFields",
+        "fieldsToCompare": "OrderID",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.removeDuplicates",
+      "typeVersion": 2,
+      "position": [
+        -288,
+        -48
+      ],
+      "id": "7099f2c2-71c8-46d0-86ca-a7a2050b22e3",
+      "name": "Remove Duplicates"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Remove Duplicates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "da4f1e32-09c1-4494-a4f2-c7e71b197dc0",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-08-05T16:30:56.075Z",
+      "createdAt": "2026-08-05T16:30:56.075Z",
+      "role": "workflow:owner",
+      "workflowId": "dPqAAfIFnVORuDpc",
+      "projectId": "aEmg0W5LInvaXu5h"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
