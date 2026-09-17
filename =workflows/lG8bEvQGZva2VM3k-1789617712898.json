@@ -1,0 +1,379 @@
+{
+  "updatedAt": "2026-08-17T17:39:24.121Z",
+  "createdAt": "2026-08-17T16:27:46.725Z",
+  "id": "lG8bEvQGZva2VM3k",
+  "name": "Week 8 practicals",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -576,
+        -48
+      ],
+      "id": "3ea8f03b-994d-4c3a-9bad-f742c5ec30c1",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1AU5FZbhCnfIOZScQuv18n09Lfxcr5ctzgG3uYAE_Pys/edit?gid=1991575537#gid=1991575537",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1991575537,
+          "mode": "list",
+          "cachedResultName": "SalesHistory",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1AU5FZbhCnfIOZScQuv18n09Lfxcr5ctzgG3uYAE_Pys/edit#gid=1991575537"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -416,
+        -48
+      ],
+      "id": "dfd9a287-4608-44e5-8fd0-c0a9bb4c8020",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zaBqUPxNKi3hNy3M",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -272,
+        -48
+      ],
+      "id": "1ed166a5-70cc-4ad2-8428-7a3e855a440c",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Can you run a summarization to get the best summary and data from it\n\n{{ $json.data.toJsonString() }}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -96,
+        -64
+      ],
+      "id": "7d219f0f-afee-443c-892e-d1f144cbf2e9",
+      "name": "Summarization Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        400
+      ],
+      "id": "3883b83c-d86f-4041-94c4-cccf53854c58",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "tDpr8Zoc5UalZJAa",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Can you extract the main customer segment from  {{ $json.output }}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        320,
+        -240
+      ],
+      "id": "b432af95-e2c8-46f8-9bfd-180729972ad5",
+      "name": "Customer Segment"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Can you extract the Items sold  {{ $('Summarization Agent').item.json.output }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        304,
+        -64
+      ],
+      "id": "7a79a62e-a7c5-4da7-bd20-a4d881a75a0a",
+      "name": "AI Agent- Items sold"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Can you extract from the main regions sold {{ $json.output }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        320,
+        112
+      ],
+      "id": "467eadbd-c5b0-4f3c-8afa-daed8ca79cd2",
+      "name": "AI Agent - Regions"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "numberInputs": 3,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        784,
+        -64
+      ],
+      "id": "9ad2cd7e-11af-410c-845a-4c115a8b0ed5",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "sendTo": "zachary.kimotho@moringaschool.com",
+        "subject": "Summary of Sales History ",
+        "emailType": "text",
+        "message": "=Hi, \n\nFind a summary of sales history\n\nCustomer Segment {{ $('Customer Segment').item.json.output }}\nItems Sold {{ $('AI Agent- Items sold').item.json.output }}\nRegions sold {{ $('AI Agent - Regions').item.json.output }}\n\n\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1024,
+        -48
+      ],
+      "id": "7b864bb7-658b-4d44-9be7-6f0d91d85fde",
+      "name": "Send a message",
+      "webhookId": "9304cd72-1067-412a-abfc-6d9e37793b56",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "99tInuffroXLujwm",
+          "name": "Gmail account 2"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Summarization Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Summarization Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Customer Segment",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "AI Agent- Items sold",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "AI Agent - Regions",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarization Agent": {
+      "main": [
+        [
+          {
+            "node": "Customer Segment",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AI Agent- Items sold",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AI Agent - Regions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Customer Segment": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent- Items sold": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "AI Agent - Regions": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {
+    "Summarization Agent": [
+      {
+        "json": {
+          "output": "Here is a summary of the key insights and data from the provided sales records:\n\n### General Overview\n- The dataset records sales of various products categorized under \"Electronics\" and \"Accessories.\"\n- Sales regions include Nakuru, Kisumu, Eldoret, Nairobi, Mombasa.\n- Customer segments: SME, Enterprise, Individual, and some non-specified.\n\n### Product Categories & Key Products\n- **Electronics** include: Tablets, Laptops, Monitors, Webcams, Power Banks.\n- **Accessories** include: Phone Chargers, USB Cables, Mice, Keyboards, Headphones.\n\n### Top-Selling Products by Total Sales\n- **Laptop (Electronics)** is the best-selling product with multiple high-value sales:\n  - The highest single sale total for a laptop is KES 1,300,000 (20 units @ 65,000 each).\n  - Other big sales: KES 1,105,000; 910,000; 975,000; 910,000; 975,000 etc.\n- **Monitor (Electronics)**\n  - Multiple sales of 10+ units with high total revenue, e.g., 475,000; 500,000; 450,000; 425,000 etc.\n- **Tablet (Electronics)**\n  - Several large transactions with totals like 700,000; 665,000; 665,000; 525,000; 490,000.\n- **Webcam (Electronics)** \n  - Steady sales generating thousands per transaction, frequent totals around 144,000 and 136,000.\n- **Power Bank (Electronics)**\n  - Consistent sales at smaller quantities but frequent transactions totaling up to 70,000.\n- **Phone Charger (Accessories)**\n  - Moderate sales, total sales mostly under 22,000.\n- **USB Cable (Accessories)**\n  - Generally lower total sales, typically under 10,000 per transaction.\n- **Mouse (Accessories)**\n  - Sales are consistent, moderate value, often between 3,000 - 30,000.\n- **Keyboard (Accessories)**\n  - Sales mostly between 3,000 - 54,000 total.\n- **Headphones (Accessories)**\n  - Some transactions up to 85,500 total sales.\n\n### Top Regions\n- **Nakuru** and **Kisumu** show strong sales volumes and high total sales in electronics (Laptops, Monitors, Tablets).\n- **Mombasa** and **Nairobi** have significant sales across electronics and accessories, especially Monitors, Keyboards, and Headphones.\n- **Eldoret** presents steady but smaller transactions in both product categories.\n\n### Customer Segments\n- **SME** and **Enterprise** segments dominate many product sales, especially Laptops, Monitors, and Webcams.\n- **Individual** customers are prevalent for accessories like Headphones and Mice, and moderate electronics like Webcams and Tablets.\n- Some sales records are missing customer segment data.\n\n### Sales Dates Span\n- The sales cover the year 2024, from January through October.\n- High sales totals appear throughout the year, indicating steady demand.\n\n### Summary Insights\n- **Laptops and Monitors** lead in revenue generation.\n- **Tablets and Webcams** show strong demand with numerous high-value transactions.\n- Accessories, while typically lower in total sales per transaction, have frequent transactions, indicating strong volume sales.\n- The SME and Enterprise segments are crucial for electronics sales.\n- Nakuru and Kisumu are key markets with the highest revenue-generating sales.\n- Sales are distributed relatively evenly throughout the first ten months of 2024, with no clear seasonal spikes.\n\nIf you'd like, I can generate specific aggregated metrics like total sales per category, per region, or per customer segment. Would you like me to do that?"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "Customer Segment": [
+      {
+        "json": {
+          "output": "The main customer segments based on the provided sales data summary are:\n\n- **SME (Small and Medium Enterprises)**  \n- **Enterprise**\n\nThese two segments dominate the sales of high-value electronics products such as **Laptops**, **Monitors**, and **Webcams**, which are the top revenue generators.\n\nIn contrast, the **Individual** segment is more prevalent for accessories (e.g., Headphones, Mice) and some moderate electronics like Webcams and Tablets.\n\nThus, the key customer segments driving the bulk of revenue, especially in electronics, are **SME** and **Enterprise**."
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "AI Agent- Items sold": [
+      {
+        "json": {
+          "output": "Here is the list of items sold based on the provided summary:\n\n### Electronics:\n- Tablet\n- Laptop\n- Monitor\n- Webcam\n- Power Bank\n\n### Accessories:\n- Phone Charger\n- USB Cable\n- Mouse\n- Keyboard\n- Headphones\n\nLet me know if you want any further detailed breakdowns or aggregations!"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "AI Agent - Regions": [
+      {
+        "json": {
+          "output": "Certainly! Here is a summary of the key insights specifically about the **main regions sold** from the data you provided:\n\n### Main Sales Regions Overview\n- **Nakuru** and **Kisumu** stand out as the top-performing regions in terms of sales volume and total revenue, especially for high-value electronics like Laptops, Monitors, and Tablets.\n- **Mombasa** and **Nairobi** also show significant sales activity, with a good balance of electronics and accessories. These regions perform well particularly in Monitors, Keyboards, and Headphones.\n- **Eldoret** sees steady but comparatively smaller transactions across both electronics and accessory categories.\n\n### Region-Specific Insights\n- **Nakuru**: Strong leader in electronics, consistently generating high sales totals, especially for high ticket items like Laptops and Monitors.\n- **Kisumu**: Comparable to Nakuru, with robust sales in electronics, particularly Laptops and Tablets.\n- **Mombasa**: Balanced sales across both electronics and accessories; notable for accessories like Keyboards and Headphones.\n- **Nairobi**: Similar to Mombasa, showing strong sales in both categories but with more emphasis on accessories.\n- **Eldoret**: Regular but smaller sales quantities; steady presence in the market but not as high revenue as Nakuru or Kisumu.\n\nIf you want, I can provide quantitative details like total sales per region or average transaction sizes. Would you like me to do that?"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "versionId": "2a7cc11f-3039-476f-8d9d-6ef28f8ac881",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-08-17T16:27:46.728Z",
+      "createdAt": "2026-08-17T16:27:46.728Z",
+      "role": "workflow:owner",
+      "workflowId": "lG8bEvQGZva2VM3k",
+      "projectId": "aEmg0W5LInvaXu5h"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
