@@ -1,0 +1,515 @@
+{
+  "updatedAt": "2026-08-02T13:57:07.854Z",
+  "createdAt": "2026-07-29T12:37:14.755Z",
+  "id": "ZKrQIJeGVMS45IhR",
+  "name": "Capstone: Automated Incident Response System- Laura Makaka week 5 Assignment",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "id": "caee5334-4a99-4bbe-a21b-f7f52c5c9415",
+      "name": "Hourly Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1312,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1n1nA-Sh-XzzoYgxiTb8TGzEp-qnFe7kyw_uahxDZ7lg/edit?gid=2111402992#gid=2111402992",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2111402992,
+          "mode": "list",
+          "cachedResultName": "Incident Logs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1n1nA-Sh-XzzoYgxiTb8TGzEp-qnFe7kyw_uahxDZ7lg/edit#gid=2111402992"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Report Status",
+              "lookupValue": "pending"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d2ac4d12-3f45-4e55-87be-b69e06d92b38",
+      "name": "Fetch Pending Incidents",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1072,
+        208
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zaBqUPxNKi3hNy3M",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze the technical logs below:\n\n{{ $json[\"Raw Logs\"] }}\n\nIncident metadata:\nIncident ID: {{ $json[\"Incident ID\"] }}\nTimestamp: {{ $json[\"Timestamp\"] }}\n\nTasks:\n1. Draft a professional post-mortem summary in clear plain text. Use these section headings: Executive Summary, Customer and Business Impact, Timeline and Evidence, Root Cause, Resolution and Recovery, and Corrective and Preventive Actions. Do not invent facts; write \"Unknown from provided logs\" where evidence is missing.\n2. Determine severity using this rubric:\n- High: core production service unavailable, widespread customer impact, confirmed or likely data loss, security breach, or a major incident requiring immediate executive attention.\n- Medium: meaningful service degradation or limited customer impact, but no evidence of a critical outage, security breach, or data loss.\n- Low: minor, isolated, transient, or informational issue with negligible customer impact.\n3. Create a concise incident title.\n\nReturn JSON only with report_body, severity_score, and incident_title.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are an experienced Site Reliability Incident Commander. Base every conclusion only on the supplied logs. Apply the severity rubric consistently so that only genuinely critical incidents are classified High.",
+          "maxIterations": 3,
+          "enableStreaming": false
+        }
+      },
+      "id": "ae23e7e3-b0bc-4c0a-afc5-e6f9df65f0f3",
+      "name": "Incident Commander",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -864,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"report_body\": {\n      \"type\": \"string\",\n      \"description\": \"Professional post-mortem report in plain text\"\n    },\n    \"severity_score\": {\n      \"type\": \"string\",\n      \"enum\": [\"High\", \"Medium\", \"Low\"]\n    },\n    \"incident_title\": {\n      \"type\": \"string\",\n      \"description\": \"Concise professional incident title\"\n    }\n  },\n  \"required\": [\"report_body\", \"severity_score\", \"incident_title\"],\n  \"additionalProperties\": false\n}",
+        "autoFix": true
+      },
+      "id": "8af62ef4-7acd-40d7-b518-3ad7ac558253",
+      "name": "Structured Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -544,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "folderId": "default",
+        "title": "={{ $('Incident Commander').item.json.output.incident_title + ' - ' + $('Fetch Pending Incidents').item.json['Incident ID'] }}"
+      },
+      "id": "dc2f88da-6425-49a9-b7a6-11546ce7a870",
+      "name": "Create Post-Mortem Document",
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        -480,
+        208
+      ],
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "oC7nfNfwfKbPkyiH",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $json.id }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "insert",
+              "text": "=POST-MORTEM REPORT\n\nTitle: {{ $('Incident Commander').item.json.output.incident_title }}\nIncident ID: {{ $('Fetch Pending Incidents').item.json['Incident ID'] }}\nReported Timestamp: {{ $('Fetch Pending Incidents').item.json['Timestamp'] }}\nSeverity: {{ $('Incident Commander').item.json.output.severity_score }}\n\n{{ $('Incident Commander').item.json.output.report_body }}"
+            }
+          ]
+        }
+      },
+      "id": "9c34719a-97a4-42e6-a8a5-94c3e470e846",
+      "name": "Write Post-Mortem Content",
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        -256,
+        208
+      ],
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "oC7nfNfwfKbPkyiH",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8a70145c-6789-4461-a596-f38ec961b53c",
+              "leftValue": "={{ $('Incident Commander').item.json.output.severity_score }}",
+              "rightValue": "High",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": false
+        }
+      },
+      "id": "dc2d0330-faa7-492a-a7c7-2a7ef8f7e2f6",
+      "name": "High Severity?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        32,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "laura.makaka@student.moringaschool.com",
+        "subject": "=URGENT: High-Severity Incident - {{ $('Incident Commander').item.json.output.incident_title }}",
+        "message": "=<h2>High-Severity Incident Escalation</h2><p><strong>Incident ID:</strong> {{ $('Fetch Pending Incidents').item.json['Incident ID'] }}</p><p><strong>Title:</strong> {{ $('Incident Commander').item.json.output.incident_title }}</p><p><strong>Severity:</strong> {{ $('Incident Commander').item.json.output.severity_score }}</p><p>The automated incident review classified this event as High severity. Immediate executive attention is required.</p><p><a href=\"https://docs.google.com/document/d/{{ $('Write Post-Mortem Content').item.json.documentId }}/edit\">Open the post-mortem report</a></p>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "a651cc2f-e5c8-444d-a4fa-a167530493ca",
+      "name": "Email CTO Alert",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        304,
+        96
+      ],
+      "webhookId": "96cf20b8-551a-4f57-8a25-94e46531377a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "99tInuffroXLujwm",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1n1nA-Sh-XzzoYgxiTb8TGzEp-qnFe7kyw_uahxDZ7lg/edit?gid=2111402992#gid=2111402992",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2111402992,
+          "mode": "list",
+          "cachedResultName": "Incident Logs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1n1nA-Sh-XzzoYgxiTb8TGzEp-qnFe7kyw_uahxDZ7lg/edit#gid=2111402992"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Google Doc Link": "={{ $('Write Post-Mortem Content').item.json.documentId }}",
+            "Incident ID": "={{ $('Fetch Pending Incidents').item.json['Incident ID'] }}",
+            "Raw Logs": "={{ $('Fetch Pending Incidents').item.json['Raw Logs'] }}",
+            "Timestamp": "={{ $('Fetch Pending Incidents').item.json.Timestamp }}",
+            "Report Status": "={{ $('Fetch Pending Incidents').item.json['Report Status'] }}"
+          },
+          "matchingColumns": [
+            "Incident ID"
+          ],
+          "schema": [
+            {
+              "id": "Incident ID",
+              "displayName": "Incident ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Raw Logs",
+              "displayName": "Raw Logs",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Report Status",
+              "displayName": "Report Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Google Doc Link",
+              "displayName": "Google Doc Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "0ab53e42-e3fd-480d-bf34-c558606da76e",
+      "name": "Mark Incident Processed",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        560,
+        208
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zaBqUPxNKi3hNy3M",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Escalation Logic\n\nThe IF node checks the AI field  severity score\n\n  High >send an urgent Gmail alert to the CTO, then mark the incident as Processed.\nMedium or Low > do not send an email; only mark the incident as Processed.\n\nThis reduces alert fatigue while still generating and logging a post-mortem for every pending incident.",
+        "height": 420,
+        "width": 580,
+        "color": 5
+      },
+      "id": "12ff32d9-761c-436d-99b1-1ad2645f1347",
+      "name": "Escalation Logic Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -272,
+        -96
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -848,
+        448
+      ],
+      "id": "31497189-2542-4898-9408-4dbb615147a3",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "tDpr8Zoc5UalZJAa",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -624,
+        688
+      ],
+      "id": "d7fc418b-9eb5-48f4-9186-43f32a778d6a",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "tDpr8Zoc5UalZJAa",
+          "name": "OpenRouter account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Hourly Schedule": {
+      "main": [
+        [
+          {
+            "node": "Fetch Pending Incidents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Pending Incidents": {
+      "main": [
+        [
+          {
+            "node": "Incident Commander",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Incident Commander",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Incident Commander": {
+      "main": [
+        [
+          {
+            "node": "Create Post-Mortem Document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Post-Mortem Document": {
+      "main": [
+        [
+          {
+            "node": "Write Post-Mortem Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Post-Mortem Content": {
+      "main": [
+        [
+          {
+            "node": "High Severity?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "High Severity?": {
+      "main": [
+        [
+          {
+            "node": "Email CTO Alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mark Incident Processed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email CTO Alert": {
+      "main": [
+        [
+          {
+            "node": "Mark Incident Processed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Incident Commander",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "23fd16da-1077-48c4-a195-61a799a26004",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-07-29T12:37:14.758Z",
+      "createdAt": "2026-07-29T12:37:14.758Z",
+      "role": "workflow:owner",
+      "workflowId": "ZKrQIJeGVMS45IhR",
+      "projectId": "aEmg0W5LInvaXu5h"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
