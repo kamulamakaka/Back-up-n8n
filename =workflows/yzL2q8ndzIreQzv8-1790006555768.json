@@ -1,0 +1,210 @@
+{
+  "updatedAt": "2026-07-22T17:04:25.156Z",
+  "createdAt": "2026-07-22T16:54:08.729Z",
+  "id": "yzL2q8ndzIreQzv8",
+  "name": "Data Merging, Batching & Aggregation",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -496,
+        16
+      ],
+      "id": "2a6b7e38-8177-4117-a6a5-f92a35beeecf",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1JTGqvz4kcFFI-dLQ1ZSP3jvRoJrZ-vQdFgKXBnCaXOM/edit?gid=2092258409#gid=2092258409",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1759542453,
+          "mode": "list",
+          "cachedResultName": "HR",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1JTGqvz4kcFFI-dLQ1ZSP3jvRoJrZ-vQdFgKXBnCaXOM/edit#gid=1759542453"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -272,
+        -144
+      ],
+      "id": "c371e93c-4a20-492a-861d-afb419932d3c",
+      "name": "HR",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zaBqUPxNKi3hNy3M",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "=https://docs.google.com/spreadsheets/d/1JTGqvz4kcFFI-dLQ1ZSP3jvRoJrZ-vQdFgKXBnCaXOM/edit?gid=2092258409#gid=2092258409",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 637456548,
+          "mode": "list",
+          "cachedResultName": "Benefits",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1JTGqvz4kcFFI-dLQ1ZSP3jvRoJrZ-vQdFgKXBnCaXOM/edit#gid=637456548"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -272,
+        48
+      ],
+      "id": "60d15012-b58a-45c6-bb67-d97d855eb51d",
+      "name": "Benefits",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zaBqUPxNKi3hNy3M",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "ID",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        64,
+        -16
+      ],
+      "id": "66c352c2-a5ae-44c6-b23c-4d64d6b5d410",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1JTGqvz4kcFFI-dLQ1ZSP3jvRoJrZ-vQdFgKXBnCaXOM/edit?gid=2092258409#gid=2092258409",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1237735893,
+          "mode": "list",
+          "cachedResultName": "Payroll",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1JTGqvz4kcFFI-dLQ1ZSP3jvRoJrZ-vQdFgKXBnCaXOM/edit#gid=1237735893"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -272,
+        224
+      ],
+      "id": "b6624ce7-bbe0-4265-ba46-e4090a8019bd",
+      "name": "Payroll",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zaBqUPxNKi3hNy3M",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Benefits",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HR",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Payroll",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Benefits": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HR": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payroll": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "f1599597-d7b8-47bf-b655-3247e112b7a5",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-07-22T16:54:08.731Z",
+      "createdAt": "2026-07-22T16:54:08.731Z",
+      "role": "workflow:owner",
+      "workflowId": "yzL2q8ndzIreQzv8",
+      "projectId": "aEmg0W5LInvaXu5h"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
