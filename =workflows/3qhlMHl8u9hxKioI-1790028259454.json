@@ -1,0 +1,1663 @@
+{
+  "updatedAt": "2026-09-16T15:20:29.554Z",
+  "createdAt": "2026-09-16T13:00:31.874Z",
+  "id": "3qhlMHl8u9hxKioI",
+  "name": "Daily Priorities · Morning Brief (Schedule + Gmail + Calendar + Extractor + Sheet + Send)",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Daily Priorities — import skeleton\n\n**Nodes in this file**\nSchedule → Config → (Gmail + Calendar + Sheet) → Extractor → Rank → Send\n\n**Before you activate**\n1. Attach credentials on every red node: Gmail, Google Calendar, Google Sheets, OpenAI.\n2. Edit **Config**: yourEmail, sheetId, calendarId (`primary` is fine).\n3. Create a Google Sheet with two tabs:\n\n**ActionItems** header row\n`row_id | created_at | from | subject | task | due | priority | status | gmail_url`\n\n**Briefings** header row\n`sent_at | subject | preview`\n\n4. Timezone is `Africa/Nairobi`. Cron is weekdays 07:00.\n5. Test with **Run now (manual)** while the workflow is inactive.\n",
+        "height": 640,
+        "width": 460,
+        "color": 5
+      },
+      "id": "ec7c90cb-8c69-4a12-a2e8-179ca6deb8ae",
+      "name": "SETUP",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Flow\n\n1. Pull last-24h inbox mail, today's calendar, open sheet rows.\n2. Extractor turns each email into category + action items.\n3. New actions are upserted to ActionItems (`row_id` prevents dupes).\n4. Code ranks priorities (deterministic).\n5. LLM writes the brief. Gmail sends it to you.\n",
+        "height": 320,
+        "width": 460,
+        "color": 4
+      },
+      "id": "a4afba9e-8fb2-4b71-8b3b-4996e65f1ef0",
+      "name": "How it runs",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        688
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 7
+            }
+          ]
+        }
+      },
+      "id": "7c9c1fde-450e-4627-94ac-23dfd39f32cf",
+      "name": "Weekdays 07:00 EAT",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        512,
+        432
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "50666001-49e1-4218-a16a-a3e905fb750b",
+      "name": "Run now (manual)",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        512,
+        608
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "81ef16fa-1a70-548f-a72a-ce5aa9be8eb7",
+              "name": "yourEmail",
+              "value": "kamulamakaka@gmail.com",
+              "type": "string"
+            },
+            {
+              "id": "f32d06e6-6baa-5b40-801a-5d00adc27f0a",
+              "name": "sheetId",
+              "value": "Daily-Priorities-Morning-Brief",
+              "type": "string"
+            },
+            {
+              "id": "8fece82f-8d35-5892-bd68-67f78a0bbbe1",
+              "name": "actionTab",
+              "value": "ActionItems",
+              "type": "string"
+            },
+            {
+              "id": "03349409-0dff-55f1-9475-6eac60eff200",
+              "name": "briefTab",
+              "value": "Briefings",
+              "type": "string"
+            },
+            {
+              "id": "97168878-d78e-5a7d-9cac-4ba33096df3b",
+              "name": "calendarId",
+              "value": "primary",
+              "type": "string"
+            },
+            {
+              "id": "aca91908-9c42-51b6-ab7d-98f61004ee1f",
+              "name": "timezone",
+              "value": "Africa/Nairobi",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f28b88ad-02cd-460c-85c9-700854fc36bb",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        784,
+        464
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 40,
+        "simple": false,
+        "filters": {
+          "includeSpamTrash": false,
+          "q": "in:inbox newer_than:1d -in:chats -category:promotions -category:social"
+        },
+        "options": {}
+      },
+      "id": "61a9f301-3cc4-4621-bc28-ae1da07610c1",
+      "name": "Gmail last 24h",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1072,
+        224
+      ],
+      "alwaysOutputData": true,
+      "webhookId": "f76b3c2c-b2a1-4171-b9a3-edcc61a9632d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "99tInuffroXLujwm",
+          "name": "Gmail account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "kamulamakaka@gmail.com",
+          "mode": "id"
+        },
+        "returnAll": true,
+        "options": {}
+      },
+      "id": "9adb5aa2-bcc2-4091-8810-96ca4795dca9",
+      "name": "Calendar today",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        1072,
+        464
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "kgz2QI6lDOzP73Ke",
+          "name": "Google Calendar account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "=1RKPFHyxBoNEuCQPARf6QtJ2EbvEDPK-8kLEc94yegI4",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "ActionItems",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RKPFHyxBoNEuCQPARf6QtJ2EbvEDPK-8kLEc94yegI4/edit#gid=0"
+        },
+        "options": {}
+      },
+      "id": "e5238322-9b55-4df9-9c1c-072919c46eb4",
+      "name": "Sheet open actions",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1072,
+        672
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zaBqUPxNKi3hNy3M",
+          "name": "Google Sheets account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "function body(j) {\n  const raw = j.text || j.textPlain || j.snippet || '';\n  return String(raw)\n    .replace(/(?:api[_-]?key|token|password|secret)\\s*[:=]\\s*\\S+/gi, '[SECRET]')\n    .replace(/\\b(?:\\d[ -]*?){13,19}\\b/g, '[CARD]')\n    .slice(0, 8000);\n}\n\nconst items = $input.all().filter(i => i.json && (i.json.id || i.json.subject || i.json.Subject));\nif (!items.length) {\n  return [{ json: { id: '', threadId: '', from: '', subject: '', gmail_url: '', emailText: '(no emails in the last 24 hours)', _empty: true } }];\n}\n\nreturn items.map(({ json: j }) => {\n  const id = j.id || '';\n  const threadId = j.threadId || id;\n  const from = j.from || j.From || '';\n  const subject = j.subject || j.Subject || '(no subject)';\n  return {\n    json: {\n      id,\n      threadId,\n      from,\n      subject,\n      snippet: String(j.snippet || '').slice(0, 280),\n      gmail_url: threadId ? `https://mail.google.com/mail/u/0/#inbox/${threadId}` : '',\n      emailText: `From: ${from}\\nSubject: ${subject}\\n\\n${body(j)}`,\n      _empty: false\n    }\n  };\n});\n"
+      },
+      "id": "aba2a1b9-6fc3-4336-b7a0-d92d74c6cf7f",
+      "name": "Prep email text",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1312,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.emailText }}",
+        "schemaType": "fromJson",
+        "jsonSchemaExample": "{\n  \"category\": \"P1\",\n  \"reason\": \"Client asked for a revised quote by Friday\",\n  \"is_human\": true,\n  \"is_junk\": false,\n  \"action_items\": [\n    {\n      \"task\": \"Send revised quote to Jane\",\n      \"owner\": \"me\",\n      \"due\": \"2026-09-18\",\n      \"priority\": \"P1\",\n      \"blocking\": false\n    }\n  ]\n}",
+        "options": {
+          "systemPromptTemplate": "You triage ONE email. Never invent work that is not in the email.\n\ncategory: P0 (same-day / blocking / human needs you now), P1 (you must act), P2 (FYI, no action), meeting, waiting, junk.\nis_junk: true for promo, social, noreply blasts, automated receipts with no action.\nis_human: false for bots, lists, notifications@.\naction_items: verb-first tasks only. Empty array if none.\ndue: YYYY-MM-DD. If missing: P0 → today, P1 → tomorrow, else \"\".\nowner is \"me\" unless clearly assigned to someone else.\nIf the input is \"(no emails in the last 24 hours)\", return category P2, is_junk false, action_items []."
+        }
+      },
+      "id": "97425c16-d90f-431e-891e-77a8883fce50",
+      "name": "Extractor",
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1.1,
+      "position": [
+        1552,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = [];\nfor (const item of $input.all()) {\n  const meta = $('Prep email text').all().find(p => {\n    try { return p.json.emailText === item.json.emailText || p.json.id === (item.json.id || ''); }\n    catch (e) { return false; }\n  });\n  const src = meta ? meta.json : {};\n  const extracted = item.json.output || item.json;\n  if (src._empty) continue;\n  if (extracted.is_junk === true || String(extracted.category || '').toLowerCase() === 'junk') continue;\n  const actions = Array.isArray(extracted.action_items) ? extracted.action_items : [];\n  for (const a of actions) {\n    if (!a || !a.task) continue;\n    const slug = String(a.task).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().slice(0, 80);\n    rows.push({\n      json: {\n        row_id: `${src.id || 'none'}::${slug}`,\n        created_at: new Date().toISOString(),\n        from: src.from || '',\n        subject: src.subject || '',\n        task: String(a.task).slice(0, 280),\n        due: a.due || '',\n        priority: a.priority || extracted.category || 'P1',\n        status: 'open',\n        gmail_url: src.gmail_url || '',\n        category: extracted.category || 'P1',\n        reason: extracted.reason || ''\n      }\n    });\n  }\n}\nif (!rows.length) {\n  return [{ json: { row_id: '', task: '', status: '', _empty: true } }];\n}\nreturn rows;\n"
+      },
+      "id": "0e653b09-fec2-4d8c-bd55-7f37566af7a0",
+      "name": "Flatten extracted actions",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1840,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "=1RKPFHyxBoNEuCQPARf6QtJ2EbvEDPK-8kLEc94yegI4",
+          "mode": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "ActionItems",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RKPFHyxBoNEuCQPARf6QtJ2EbvEDPK-8kLEc94yegI4/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "row_id"
+          ],
+          "schema": [
+            {
+              "id": "row_id",
+              "displayName": "row_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "subject",
+              "displayName": "subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "task",
+              "displayName": "task",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "due",
+              "displayName": "due",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "priority",
+              "displayName": "priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "from",
+              "displayName": "from",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "gmail_url",
+              "displayName": "gmail_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "830aa272-5ede-4489-b570-fccbab54245c",
+      "name": "Sheet upsert actions",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2032,
+        224
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zaBqUPxNKi3hNy3M",
+          "name": "Google Sheets account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const tz = $('Config').first().json.timezone || 'Africa/Nairobi';\nconst now = DateTime.now().setZone(tz);\nconst today = now.toISODate();\nconst yourEmail = $('Config').first().json.yourEmail;\n\nfunction safe(name) {\n  try { return $(name).all().map(i => i.json).filter(j => j && !j._empty && Object.keys(j).length); }\n  catch (e) { return []; }\n}\n\nconst extractedRows = safe('Flatten extracted actions').filter(r => r.row_id && r.task);\nconst existing = safe('Sheet open actions').filter(a => String(a.status || 'open').toLowerCase() === 'open' && a.task);\nconst eventsRaw = safe('Calendar today').filter(e => e.summary || e.start);\n\nconst byId = {};\nfor (const a of existing) byId[a.row_id || a.task] = a;\nfor (const a of extractedRows) byId[a.row_id || a.task] = { ...byId[a.row_id || a.task], ...a };\nconst actions = Object.values(byId);\n\nfunction scoreAction(a) {\n  let s = 0;\n  const due = String(a.due || '').slice(0, 10);\n  const pri = String(a.priority || a.category || 'P2').toUpperCase();\n  if (due && due < today) s += 80;\n  if (pri === 'P0' || pri === '0') s += 60;\n  if (due === today) s += 40;\n  if (String(a.blocking).toLowerCase() === 'true') s += 25;\n  return s;\n}\n\nfunction eventStart(e) { return e.start?.dateTime || e.start?.date || e.start || null; }\n\nconst events = eventsRaw.map(e => {\n  const start = eventStart(e);\n  let s = 0;\n  if (start) {\n    const t = DateTime.fromISO(String(start), { zone: tz });\n    if (t.isValid) {\n      const hours = t.diff(now, 'hours').hours;\n      if (hours >= 0 && hours <= 2) s += 100;\n    }\n  }\n  if (!String(e.description || '').trim()) s += 20;\n  return {\n    title: e.summary || '(no title)',\n    start,\n    end: e.end?.dateTime || e.end?.date || '',\n    htmlLink: e.htmlLink || '',\n    attendees: (e.attendees || []).map(a => a.email || a.displayName).filter(Boolean).slice(0, 8),\n    score: s\n  };\n}).sort((a, b) => String(a.start).localeCompare(String(b.start)));\n\nconst actionsRanked = actions.map(a => ({ ...a, score: scoreAction(a) })).sort((a, b) => b.score - a.score);\n\nconst meetingPri = events.filter(e => e.score >= 100).map(e => ({\n  task: `Attend / prep: ${e.title}`,\n  due: today,\n  priority: 'P0',\n  score: e.score,\n  kind: 'meeting'\n}));\n\nconst top3 = [...actionsRanked.map(a => ({ ...a, kind: 'action' })), ...meetingPri]\n  .sort((a, b) => (b.score || 0) - (a.score || 0))\n  .slice(0, 3);\n\nconst junkCount = safe('Extractor').filter(x => {\n  const o = x.output || x;\n  return o.is_junk === true || String(o.category || '').toLowerCase() === 'junk';\n}).length;\n\nreturn [{\n  json: {\n    generated_at: now.toISO(),\n    timezone: tz,\n    yourEmail,\n    date_human: now.toFormat('ccc dd LLL yyyy'),\n    top_priorities: top3,\n    open_actions: actionsRanked,\n    overdue_count: actionsRanked.filter(a => String(a.due || '').slice(0, 10) && String(a.due).slice(0, 10) < today).length,\n    calendar_today: events,\n    meeting_count: events.length,\n    junk_filtered: junkCount\n  }\n}];\n"
+      },
+      "id": "f7a46411-625d-4965-9303-f9364629e321",
+      "name": "Rank + assemble context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2272,
+        464
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ 'Write today\\'s briefing from this JSON. Do not invent tasks.\\n\\n' + JSON.stringify($json) }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are my morning chief of staff. Write a tight briefing in Markdown.\n\nExact sections:\n# Priorities · {{ $json.date_human }}\n## 1. Top 3 priorities\nNumbered. One sentence why. Include due date if present. Do not pad.\n## 2. Meetings today\nBullet: time (Africa/Nairobi) — title — one prep bullet. If none: \"No meetings. Protect deep work.\"\nFlag overlaps as **conflict**.\n## 3. Pending action items\nOverdue first. Verb-first. Max 10.\n## 4. Filtered / junk\nOne line with junk_filtered count. Never list promos as tasks.\n## 5. First 90 minutes\nThree concrete next steps from the real items above.\n\nNever invent work. Cap at 400 words. No preamble."
+            }
+          ]
+        }
+      },
+      "id": "04ed451d-75d6-4507-ad09-60bbb2fc6192",
+      "name": "Write brief",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [
+        2480,
+        464
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "markdownToHtml",
+        "markdown": "={{ $json.text || $json.output || '' }}",
+        "destinationKey": "html",
+        "options": {}
+      },
+      "id": "4e57bc73-9aea-485d-a503-fa4265d1b358",
+      "name": "Markdown to HTML",
+      "type": "n8n-nodes-base.markdown",
+      "typeVersion": 1,
+      "position": [
+        2752,
+        464
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ranked = $('Rank + assemble context').first().json;\nconst inner = $json.html || $json.text || '';\nconst subject = `Priorities · ${ranked.date_human} · ${ranked.top_priorities.length} P0 · ${ranked.meeting_count} meetings`;\nconst html = `<!DOCTYPE html>\n<html><body style=\"margin:0;padding:0;background:#111;font-family:Georgia,serif;\">\n<div style=\"max-width:640px;margin:24px auto;padding:32px 28px;background:#f7f1e8;color:#1a1a1a;border-radius:12px;\">\n<p style=\"margin:0 0 8px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#6b4f2a;\">Daily priorities</p>\n${inner}\n<p style=\"margin-top:28px;font-size:12px;color:#6b6b6b;\">${ranked.generated_at} · ${ranked.timezone}<br>\nJunk filtered: ${ranked.junk_filtered} · Overdue: ${ranked.overdue_count}</p>\n</div></body></html>`;\nreturn [{ json: { subject, html, to: ranked.yourEmail, text_preview: String($json.text || '').slice(0, 400) } }];\n"
+      },
+      "id": "e09579b2-5524-444f-a090-3f2a2c1ab8ee",
+      "name": "Wrap HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2992,
+        464
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.to }}",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": true
+        }
+      },
+      "id": "45f0ea8b-6f39-4632-bad5-4fd8170cb943",
+      "name": "Send briefing",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        3472,
+        464
+      ],
+      "webhookId": "31a2f1a6-4f94-4e3c-ac92-275137a604cb",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "99tInuffroXLujwm",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "=1RKPFHyxBoNEuCQPARf6QtJ2EbvEDPK-8kLEc94yegI4",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1753847762,
+          "mode": "list",
+          "cachedResultName": "Briefings",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RKPFHyxBoNEuCQPARf6QtJ2EbvEDPK-8kLEc94yegI4/edit#gid=1753847762"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "sent_at": "sent_at",
+            "subject": "subject",
+            "preview": "preview"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "sent_at",
+              "displayName": "sent_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "subject",
+              "displayName": "subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "preview",
+              "displayName": "preview",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "bc930e00-69ae-43b3-8301-5951bfc1ee07",
+      "name": "Sheet log briefing",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        3216,
+        464
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zaBqUPxNKi3hNy3M",
+          "name": "Google Sheets account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1552,
+        384
+      ],
+      "id": "76dce06c-b617-4ce8-915d-e57263621d8c",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "tDpr8Zoc5UalZJAa",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        2480,
+        720
+      ],
+      "id": "1755a8ae-4254-4a90-95ae-5143f56e9e04",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "tDpr8Zoc5UalZJAa",
+          "name": "OpenRouter account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Weekdays 07:00 EAT": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run now (manual)": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Gmail last 24h",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Calendar today",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Sheet open actions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail last 24h": {
+      "main": [
+        [
+          {
+            "node": "Prep email text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prep email text": {
+      "main": [
+        [
+          {
+            "node": "Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extractor": {
+      "main": [
+        [
+          {
+            "node": "Flatten extracted actions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Flatten extracted actions": {
+      "main": [
+        [
+          {
+            "node": "Sheet upsert actions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sheet upsert actions": {
+      "main": [
+        [
+          {
+            "node": "Rank + assemble context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calendar today": {
+      "main": [
+        [
+          {
+            "node": "Rank + assemble context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sheet open actions": {
+      "main": [
+        [
+          {
+            "node": "Rank + assemble context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rank + assemble context": {
+      "main": [
+        [
+          {
+            "node": "Write brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write brief": {
+      "main": [
+        [
+          {
+            "node": "Markdown to HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Markdown to HTML": {
+      "main": [
+        [
+          {
+            "node": "Wrap HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wrap HTML": {
+      "main": [
+        [
+          {
+            "node": "Send briefing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send briefing": {
+      "main": [
+        [
+          {
+            "node": "Sheet log briefing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Extractor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Write brief",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "timezone": "Africa/Nairobi",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": {
+    "node:Weekdays 07:00 EAT": {
+      "recurrenceRules": [
+        null
+      ],
+      "recurrenceRuleSignatures": [
+        null
+      ]
+    }
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "18fb5f83-a217-49ed-8c13-a5c73819b015",
+  "activeVersionId": "b579f2d5-7a81-4b68-9bad-ed4f4b34e227",
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-09-16T13:00:31.876Z",
+      "createdAt": "2026-09-16T13:00:31.876Z",
+      "role": "workflow:owner",
+      "workflowId": "3qhlMHl8u9hxKioI",
+      "projectId": "aEmg0W5LInvaXu5h"
+    }
+  ],
+  "activeVersion": {
+    "updatedAt": "2026-09-16T15:18:40.000Z",
+    "createdAt": "2026-09-16T14:58:22.826Z",
+    "versionId": "b579f2d5-7a81-4b68-9bad-ed4f4b34e227",
+    "workflowId": "3qhlMHl8u9hxKioI",
+    "nodes": [
+      {
+        "parameters": {
+          "content": "## Daily Priorities — import skeleton\n\n**Nodes in this file**\nSchedule → Config → (Gmail + Calendar + Sheet) → Extractor → Rank → Send\n\n**Before you activate**\n1. Attach credentials on every red node: Gmail, Google Calendar, Google Sheets, OpenAI.\n2. Edit **Config**: yourEmail, sheetId, calendarId (`primary` is fine).\n3. Create a Google Sheet with two tabs:\n\n**ActionItems** header row\n`row_id | created_at | from | subject | task | due | priority | status | gmail_url`\n\n**Briefings** header row\n`sent_at | subject | preview`\n\n4. Timezone is `Africa/Nairobi`. Cron is weekdays 07:00.\n5. Test with **Run now (manual)** while the workflow is inactive.\n",
+          "height": 640,
+          "width": 460,
+          "color": 5
+        },
+        "id": "ec7c90cb-8c69-4a12-a2e8-179ca6deb8ae",
+        "name": "SETUP",
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          0,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "content": "## Flow\n\n1. Pull last-24h inbox mail, today's calendar, open sheet rows.\n2. Extractor turns each email into category + action items.\n3. New actions are upserted to ActionItems (`row_id` prevents dupes).\n4. Code ranks priorities (deterministic).\n5. LLM writes the brief. Gmail sends it to you.\n",
+          "height": 320,
+          "width": 460,
+          "color": 4
+        },
+        "id": "a4afba9e-8fb2-4b71-8b3b-4996e65f1ef0",
+        "name": "How it runs",
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          0,
+          688
+        ]
+      },
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "triggerAtHour": 7
+              }
+            ]
+          }
+        },
+        "id": "7c9c1fde-450e-4627-94ac-23dfd39f32cf",
+        "name": "Weekdays 07:00 EAT",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          512,
+          432
+        ]
+      },
+      {
+        "parameters": {},
+        "id": "50666001-49e1-4218-a16a-a3e905fb750b",
+        "name": "Run now (manual)",
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          512,
+          608
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "81ef16fa-1a70-548f-a72a-ce5aa9be8eb7",
+                "name": "yourEmail",
+                "value": "kamulamakaka@gmail.com",
+                "type": "string"
+              },
+              {
+                "id": "f32d06e6-6baa-5b40-801a-5d00adc27f0a",
+                "name": "sheetId",
+                "value": "Daily-Priorities-Morning-Brief",
+                "type": "string"
+              },
+              {
+                "id": "8fece82f-8d35-5892-bd68-67f78a0bbbe1",
+                "name": "actionTab",
+                "value": "ActionItems",
+                "type": "string"
+              },
+              {
+                "id": "03349409-0dff-55f1-9475-6eac60eff200",
+                "name": "briefTab",
+                "value": "Briefings",
+                "type": "string"
+              },
+              {
+                "id": "97168878-d78e-5a7d-9cac-4ba33096df3b",
+                "name": "calendarId",
+                "value": "primary",
+                "type": "string"
+              },
+              {
+                "id": "aca91908-9c42-51b6-ab7d-98f61004ee1f",
+                "name": "timezone",
+                "value": "Africa/Nairobi",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "f28b88ad-02cd-460c-85c9-700854fc36bb",
+        "name": "Config",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          784,
+          464
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "getAll",
+          "limit": 40,
+          "simple": false,
+          "filters": {
+            "includeSpamTrash": false,
+            "q": "in:inbox newer_than:1d -in:chats -category:promotions -category:social"
+          },
+          "options": {}
+        },
+        "id": "61a9f301-3cc4-4621-bc28-ae1da07610c1",
+        "name": "Gmail last 24h",
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.1,
+        "position": [
+          1072,
+          224
+        ],
+        "alwaysOutputData": true,
+        "webhookId": "f76b3c2c-b2a1-4171-b9a3-edcc61a9632d",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "99tInuffroXLujwm",
+            "name": "Gmail account 2"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "operation": "getAll",
+          "calendar": {
+            "__rl": true,
+            "value": "kamulamakaka@gmail.com",
+            "mode": "id"
+          },
+          "returnAll": true,
+          "options": {}
+        },
+        "id": "9adb5aa2-bcc2-4091-8810-96ca4795dca9",
+        "name": "Calendar today",
+        "type": "n8n-nodes-base.googleCalendar",
+        "typeVersion": 1.3,
+        "position": [
+          1072,
+          464
+        ],
+        "alwaysOutputData": true,
+        "credentials": {
+          "googleCalendarOAuth2Api": {
+            "id": "kgz2QI6lDOzP73Ke",
+            "name": "Google Calendar account"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "documentId": {
+            "__rl": true,
+            "value": "=1RKPFHyxBoNEuCQPARf6QtJ2EbvEDPK-8kLEc94yegI4",
+            "mode": "id"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "gid=0",
+            "mode": "list",
+            "cachedResultName": "ActionItems",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RKPFHyxBoNEuCQPARf6QtJ2EbvEDPK-8kLEc94yegI4/edit#gid=0"
+          },
+          "options": {}
+        },
+        "id": "e5238322-9b55-4df9-9c1c-072919c46eb4",
+        "name": "Sheet open actions",
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.5,
+        "position": [
+          1072,
+          672
+        ],
+        "alwaysOutputData": true,
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "zaBqUPxNKi3hNy3M",
+            "name": "Google Sheets account"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "jsCode": "function body(j) {\n  const raw = j.text || j.textPlain || j.snippet || '';\n  return String(raw)\n    .replace(/(?:api[_-]?key|token|password|secret)\\s*[:=]\\s*\\S+/gi, '[SECRET]')\n    .replace(/\\b(?:\\d[ -]*?){13,19}\\b/g, '[CARD]')\n    .slice(0, 8000);\n}\n\nconst items = $input.all().filter(i => i.json && (i.json.id || i.json.subject || i.json.Subject));\nif (!items.length) {\n  return [{ json: { id: '', threadId: '', from: '', subject: '', gmail_url: '', emailText: '(no emails in the last 24 hours)', _empty: true } }];\n}\n\nreturn items.map(({ json: j }) => {\n  const id = j.id || '';\n  const threadId = j.threadId || id;\n  const from = j.from || j.From || '';\n  const subject = j.subject || j.Subject || '(no subject)';\n  return {\n    json: {\n      id,\n      threadId,\n      from,\n      subject,\n      snippet: String(j.snippet || '').slice(0, 280),\n      gmail_url: threadId ? `https://mail.google.com/mail/u/0/#inbox/${threadId}` : '',\n      emailText: `From: ${from}\\nSubject: ${subject}\\n\\n${body(j)}`,\n      _empty: false\n    }\n  };\n});\n"
+        },
+        "id": "aba2a1b9-6fc3-4336-b7a0-d92d74c6cf7f",
+        "name": "Prep email text",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1312,
+          224
+        ]
+      },
+      {
+        "parameters": {
+          "text": "={{ $json.emailText }}",
+          "schemaType": "fromJson",
+          "jsonSchemaExample": "{\n  \"category\": \"P1\",\n  \"reason\": \"Client asked for a revised quote by Friday\",\n  \"is_human\": true,\n  \"is_junk\": false,\n  \"action_items\": [\n    {\n      \"task\": \"Send revised quote to Jane\",\n      \"owner\": \"me\",\n      \"due\": \"2026-09-18\",\n      \"priority\": \"P1\",\n      \"blocking\": false\n    }\n  ]\n}",
+          "options": {
+            "systemPromptTemplate": "You triage ONE email. Never invent work that is not in the email.\n\ncategory: P0 (same-day / blocking / human needs you now), P1 (you must act), P2 (FYI, no action), meeting, waiting, junk.\nis_junk: true for promo, social, noreply blasts, automated receipts with no action.\nis_human: false for bots, lists, notifications@.\naction_items: verb-first tasks only. Empty array if none.\ndue: YYYY-MM-DD. If missing: P0 → today, P1 → tomorrow, else \"\".\nowner is \"me\" unless clearly assigned to someone else.\nIf the input is \"(no emails in the last 24 hours)\", return category P2, is_junk false, action_items []."
+          }
+        },
+        "id": "97425c16-d90f-431e-891e-77a8883fce50",
+        "name": "Extractor",
+        "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+        "typeVersion": 1.1,
+        "position": [
+          1552,
+          224
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const rows = [];\nfor (const item of $input.all()) {\n  const meta = $('Prep email text').all().find(p => {\n    try { return p.json.emailText === item.json.emailText || p.json.id === (item.json.id || ''); }\n    catch (e) { return false; }\n  });\n  const src = meta ? meta.json : {};\n  const extracted = item.json.output || item.json;\n  if (src._empty) continue;\n  if (extracted.is_junk === true || String(extracted.category || '').toLowerCase() === 'junk') continue;\n  const actions = Array.isArray(extracted.action_items) ? extracted.action_items : [];\n  for (const a of actions) {\n    if (!a || !a.task) continue;\n    const slug = String(a.task).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().slice(0, 80);\n    rows.push({\n      json: {\n        row_id: `${src.id || 'none'}::${slug}`,\n        created_at: new Date().toISOString(),\n        from: src.from || '',\n        subject: src.subject || '',\n        task: String(a.task).slice(0, 280),\n        due: a.due || '',\n        priority: a.priority || extracted.category || 'P1',\n        status: 'open',\n        gmail_url: src.gmail_url || '',\n        category: extracted.category || 'P1',\n        reason: extracted.reason || ''\n      }\n    });\n  }\n}\nif (!rows.length) {\n  return [{ json: { row_id: '', task: '', status: '', _empty: true } }];\n}\nreturn rows;\n"
+        },
+        "id": "0e653b09-fec2-4d8c-bd55-7f37566af7a0",
+        "name": "Flatten extracted actions",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1840,
+          224
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "appendOrUpdate",
+          "documentId": {
+            "__rl": true,
+            "value": "=1RKPFHyxBoNEuCQPARf6QtJ2EbvEDPK-8kLEc94yegI4",
+            "mode": ""
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "gid=0",
+            "mode": "list",
+            "cachedResultName": "ActionItems",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RKPFHyxBoNEuCQPARf6QtJ2EbvEDPK-8kLEc94yegI4/edit#gid=0"
+          },
+          "columns": {
+            "mappingMode": "autoMapInputData",
+            "value": {},
+            "matchingColumns": [
+              "row_id"
+            ],
+            "schema": [
+              {
+                "id": "row_id",
+                "displayName": "row_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "created_at",
+                "displayName": "created_at",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "subject",
+                "displayName": "subject",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "task",
+                "displayName": "task",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "due",
+                "displayName": "due",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "priority",
+                "displayName": "priority",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "status",
+                "displayName": "status",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "category",
+                "displayName": "category",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "reason",
+                "displayName": "reason",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "from",
+                "displayName": "from",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "gmail_url",
+                "displayName": "gmail_url",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "id": "830aa272-5ede-4489-b570-fccbab54245c",
+        "name": "Sheet upsert actions",
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.5,
+        "position": [
+          2032,
+          224
+        ],
+        "alwaysOutputData": true,
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "zaBqUPxNKi3hNy3M",
+            "name": "Google Sheets account"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "jsCode": "const tz = $('Config').first().json.timezone || 'Africa/Nairobi';\nconst now = DateTime.now().setZone(tz);\nconst today = now.toISODate();\nconst yourEmail = $('Config').first().json.yourEmail;\n\nfunction safe(name) {\n  try { return $(name).all().map(i => i.json).filter(j => j && !j._empty && Object.keys(j).length); }\n  catch (e) { return []; }\n}\n\nconst extractedRows = safe('Flatten extracted actions').filter(r => r.row_id && r.task);\nconst existing = safe('Sheet open actions').filter(a => String(a.status || 'open').toLowerCase() === 'open' && a.task);\nconst eventsRaw = safe('Calendar today').filter(e => e.summary || e.start);\n\nconst byId = {};\nfor (const a of existing) byId[a.row_id || a.task] = a;\nfor (const a of extractedRows) byId[a.row_id || a.task] = { ...byId[a.row_id || a.task], ...a };\nconst actions = Object.values(byId);\n\nfunction scoreAction(a) {\n  let s = 0;\n  const due = String(a.due || '').slice(0, 10);\n  const pri = String(a.priority || a.category || 'P2').toUpperCase();\n  if (due && due < today) s += 80;\n  if (pri === 'P0' || pri === '0') s += 60;\n  if (due === today) s += 40;\n  if (String(a.blocking).toLowerCase() === 'true') s += 25;\n  return s;\n}\n\nfunction eventStart(e) { return e.start?.dateTime || e.start?.date || e.start || null; }\n\nconst events = eventsRaw.map(e => {\n  const start = eventStart(e);\n  let s = 0;\n  if (start) {\n    const t = DateTime.fromISO(String(start), { zone: tz });\n    if (t.isValid) {\n      const hours = t.diff(now, 'hours').hours;\n      if (hours >= 0 && hours <= 2) s += 100;\n    }\n  }\n  if (!String(e.description || '').trim()) s += 20;\n  return {\n    title: e.summary || '(no title)',\n    start,\n    end: e.end?.dateTime || e.end?.date || '',\n    htmlLink: e.htmlLink || '',\n    attendees: (e.attendees || []).map(a => a.email || a.displayName).filter(Boolean).slice(0, 8),\n    score: s\n  };\n}).sort((a, b) => String(a.start).localeCompare(String(b.start)));\n\nconst actionsRanked = actions.map(a => ({ ...a, score: scoreAction(a) })).sort((a, b) => b.score - a.score);\n\nconst meetingPri = events.filter(e => e.score >= 100).map(e => ({\n  task: `Attend / prep: ${e.title}`,\n  due: today,\n  priority: 'P0',\n  score: e.score,\n  kind: 'meeting'\n}));\n\nconst top3 = [...actionsRanked.map(a => ({ ...a, kind: 'action' })), ...meetingPri]\n  .sort((a, b) => (b.score || 0) - (a.score || 0))\n  .slice(0, 3);\n\nconst junkCount = safe('Extractor').filter(x => {\n  const o = x.output || x;\n  return o.is_junk === true || String(o.category || '').toLowerCase() === 'junk';\n}).length;\n\nreturn [{\n  json: {\n    generated_at: now.toISO(),\n    timezone: tz,\n    yourEmail,\n    date_human: now.toFormat('ccc dd LLL yyyy'),\n    top_priorities: top3,\n    open_actions: actionsRanked,\n    overdue_count: actionsRanked.filter(a => String(a.due || '').slice(0, 10) && String(a.due).slice(0, 10) < today).length,\n    calendar_today: events,\n    meeting_count: events.length,\n    junk_filtered: junkCount\n  }\n}];\n"
+        },
+        "id": "f7a46411-625d-4965-9303-f9364629e321",
+        "name": "Rank + assemble context",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2272,
+          464
+        ]
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "={{ 'Write today\\'s briefing from this JSON. Do not invent tasks.\\n\\n' + JSON.stringify($json) }}",
+          "messages": {
+            "messageValues": [
+              {
+                "message": "You are my morning chief of staff. Write a tight briefing in Markdown.\n\nExact sections:\n# Priorities · {{ $json.date_human }}\n## 1. Top 3 priorities\nNumbered. One sentence why. Include due date if present. Do not pad.\n## 2. Meetings today\nBullet: time (Africa/Nairobi) — title — one prep bullet. If none: \"No meetings. Protect deep work.\"\nFlag overlaps as **conflict**.\n## 3. Pending action items\nOverdue first. Verb-first. Max 10.\n## 4. Filtered / junk\nOne line with junk_filtered count. Never list promos as tasks.\n## 5. First 90 minutes\nThree concrete next steps from the real items above.\n\nNever invent work. Cap at 400 words. No preamble."
+              }
+            ]
+          }
+        },
+        "id": "04ed451d-75d6-4507-ad09-60bbb2fc6192",
+        "name": "Write brief",
+        "type": "@n8n/n8n-nodes-langchain.chainLlm",
+        "typeVersion": 1.4,
+        "position": [
+          2480,
+          464
+        ]
+      },
+      {
+        "parameters": {
+          "mode": "markdownToHtml",
+          "markdown": "={{ $json.text || $json.output || '' }}",
+          "destinationKey": "html",
+          "options": {}
+        },
+        "id": "4e57bc73-9aea-485d-a503-fa4265d1b358",
+        "name": "Markdown to HTML",
+        "type": "n8n-nodes-base.markdown",
+        "typeVersion": 1,
+        "position": [
+          2752,
+          464
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const ranked = $('Rank + assemble context').first().json;\nconst inner = $json.html || $json.text || '';\nconst subject = `Priorities · ${ranked.date_human} · ${ranked.top_priorities.length} P0 · ${ranked.meeting_count} meetings`;\nconst html = `<!DOCTYPE html>\n<html><body style=\"margin:0;padding:0;background:#111;font-family:Georgia,serif;\">\n<div style=\"max-width:640px;margin:24px auto;padding:32px 28px;background:#f7f1e8;color:#1a1a1a;border-radius:12px;\">\n<p style=\"margin:0 0 8px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#6b4f2a;\">Daily priorities</p>\n${inner}\n<p style=\"margin-top:28px;font-size:12px;color:#6b6b6b;\">${ranked.generated_at} · ${ranked.timezone}<br>\nJunk filtered: ${ranked.junk_filtered} · Overdue: ${ranked.overdue_count}</p>\n</div></body></html>`;\nreturn [{ json: { subject, html, to: ranked.yourEmail, text_preview: String($json.text || '').slice(0, 400) } }];\n"
+        },
+        "id": "e09579b2-5524-444f-a090-3f2a2c1ab8ee",
+        "name": "Wrap HTML",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2992,
+          464
+        ]
+      },
+      {
+        "parameters": {
+          "sendTo": "={{ $json.to }}",
+          "subject": "={{ $json.subject }}",
+          "message": "={{ $json.html }}",
+          "options": {
+            "appendAttribution": true
+          }
+        },
+        "id": "45f0ea8b-6f39-4632-bad5-4fd8170cb943",
+        "name": "Send briefing",
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.1,
+        "position": [
+          3472,
+          464
+        ],
+        "webhookId": "31a2f1a6-4f94-4e3c-ac92-275137a604cb",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "99tInuffroXLujwm",
+            "name": "Gmail account 2"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "append",
+          "documentId": {
+            "__rl": true,
+            "value": "=1RKPFHyxBoNEuCQPARf6QtJ2EbvEDPK-8kLEc94yegI4",
+            "mode": "id"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 1753847762,
+            "mode": "list",
+            "cachedResultName": "Briefings",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RKPFHyxBoNEuCQPARf6QtJ2EbvEDPK-8kLEc94yegI4/edit#gid=1753847762"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "sent_at": "sent_at",
+              "subject": "subject",
+              "preview": "preview"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "sent_at",
+                "displayName": "sent_at",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "subject",
+                "displayName": "subject",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "preview",
+                "displayName": "preview",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "id": "bc930e00-69ae-43b3-8301-5951bfc1ee07",
+        "name": "Sheet log briefing",
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.5,
+        "position": [
+          3216,
+          464
+        ],
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "zaBqUPxNKi3hNy3M",
+            "name": "Google Sheets account"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+        "typeVersion": 1,
+        "position": [
+          1552,
+          464
+        ],
+        "id": "76dce06c-b617-4ce8-915d-e57263621d8c",
+        "name": "OpenRouter Chat Model",
+        "credentials": {
+          "openRouterApi": {
+            "id": "tDpr8Zoc5UalZJAa",
+            "name": "OpenRouter account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+        "typeVersion": 1,
+        "position": [
+          2480,
+          720
+        ],
+        "id": "1755a8ae-4254-4a90-95ae-5143f56e9e04",
+        "name": "OpenRouter Chat Model1",
+        "credentials": {
+          "openRouterApi": {
+            "id": "tDpr8Zoc5UalZJAa",
+            "name": "OpenRouter account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Weekdays 07:00 EAT": {
+        "main": [
+          [
+            {
+              "node": "Config",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Run now (manual)": {
+        "main": [
+          [
+            {
+              "node": "Config",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Config": {
+        "main": [
+          [
+            {
+              "node": "Gmail last 24h",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Calendar today",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Sheet open actions",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Gmail last 24h": {
+        "main": [
+          [
+            {
+              "node": "Prep email text",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Prep email text": {
+        "main": [
+          [
+            {
+              "node": "Extractor",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extractor": {
+        "main": [
+          [
+            {
+              "node": "Flatten extracted actions",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Flatten extracted actions": {
+        "main": [
+          [
+            {
+              "node": "Sheet upsert actions",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Sheet upsert actions": {
+        "main": [
+          [
+            {
+              "node": "Rank + assemble context",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Calendar today": {
+        "main": [
+          [
+            {
+              "node": "Rank + assemble context",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Sheet open actions": {
+        "main": [
+          [
+            {
+              "node": "Rank + assemble context",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Rank + assemble context": {
+        "main": [
+          [
+            {
+              "node": "Write brief",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Write brief": {
+        "main": [
+          [
+            {
+              "node": "Markdown to HTML",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Markdown to HTML": {
+        "main": [
+          [
+            {
+              "node": "Wrap HTML",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Wrap HTML": {
+        "main": [
+          [
+            {
+              "node": "Send briefing",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send briefing": {
+        "main": [
+          [
+            {
+              "node": "Sheet log briefing",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenRouter Chat Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "Extractor",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenRouter Chat Model1": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "Write brief",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "nodeGroups": [],
+    "authors": "Laura Makaka",
+    "name": "Version b579f2d5",
+    "description": "",
+    "autosaved": false
+  },
+  "tags": []
+}
