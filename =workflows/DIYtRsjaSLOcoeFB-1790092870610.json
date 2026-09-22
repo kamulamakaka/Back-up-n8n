@@ -1,0 +1,525 @@
+{
+  "updatedAt": "2026-09-02T09:14:00.733Z",
+  "createdAt": "2026-09-02T09:02:33.665Z",
+  "id": "DIYtRsjaSLOcoeFB",
+  "name": "Amani Morning Brief — VIP Orders",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Data Input & Config\nCentral settings live in **CONFIG: Thresholds**. Change `highValueLimit` here — never inside IF nodes.\n\nTimezone: Africa/Nairobi · 08:00 daily",
+        "height": 420,
+        "width": 860,
+        "color": 5
+      },
+      "id": "6493d2fa-39f8-4cc1-9e3a-8a07c35534b0",
+      "name": "GROUP: Data Input & Config",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1648,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Validation & Logic\n**Scope Guard** drops empty / non-numeric Amounts so the AI node never crashes.\n**High Value** compares against CONFIG — no hardcoded 10000.",
+        "height": 360,
+        "width": 620,
+        "color": 2
+      },
+      "id": "24299321-d28e-4efd-9971-49b06c2ccd34",
+      "name": "GROUP: Validation & Logic",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -704,
+        -112
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Processing & Output\nAI writes a concise AM brief. Gmail delivers it. DISPLAY keeps the final JSON for debugging.",
+        "height": 460,
+        "width": 980,
+        "color": 4
+      },
+      "id": "28781899-739a-4a85-b7f5-0ae50dfc1b6e",
+      "name": "GROUP: Processing & Output",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Amani Morning Brief — VIP Orders\nProduction workflow. Import → attach Google Sheets + Gmail + OpenAI credentials → paste the DailyOrders spreadsheet ID.\n\n**Blue** Data Input & Config\n**Orange** Validation & Logic\n**Green** Processing & Output\n\nFalse branches of both IF nodes are intentionally unconnected (silent drop).",
+        "height": 504,
+        "width": 628,
+        "color": 7
+      },
+      "id": "8c7c45f6-15b1-42eb-a89a-aca5a868cfb1",
+      "name": "DOC: How to operate",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1648,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "id": "16181e70-10fc-44a4-846d-871218bea123",
+      "name": "TRIGGER: Daily_8AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1520,
+        208
+      ],
+      "notesInFlow": true,
+      "notes": "Fires every day at 08:00 in the workflow timezone (Africa/Nairobi)."
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cfg-limit",
+              "name": "highValueLimit",
+              "value": 10000,
+              "type": "number"
+            },
+            {
+              "id": "cfg-env",
+              "name": "environment",
+              "value": "PROD",
+              "type": "string"
+            },
+            {
+              "id": "cfg-tone",
+              "name": "aiTone",
+              "value": "Professional and Concise",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5ca98b5b-1bbc-4eda-8143-8f0003db8c66",
+      "name": "CONFIG: Thresholds",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1248,
+        208
+      ],
+      "notesInFlow": true,
+      "notes": "Single source of truth. Change VIP threshold, environment, and AI tone here only."
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1KcIHrNjU20g3Whm-nIilD8YLwmLBmFQKVUMC37Gzmvo/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "orders",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1KcIHrNjU20g3Whm-nIilD8YLwmLBmFQKVUMC37Gzmvo/edit#gid=0"
+        },
+        "options": {}
+      },
+      "id": "fad25e59-c8f9-4896-9522-cfee1d8feacb",
+      "name": "READ: Daily_Orders",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -960,
+        208
+      ],
+      "notesInFlow": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zaBqUPxNKi3hNy3M",
+          "name": "Google Sheets account"
+        }
+      },
+      "notes": "Reads DailyOrders / Orders. Expected columns: OrderID, CustomerName, OrderAmount, OrderDetails."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "scope-not-empty",
+              "leftValue": "={{ $json.OrderAmount }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "scope-is-number",
+              "leftValue": "={{ Number.isFinite(Number(String($json.OrderAmount).replace(/[$,]/g, '').trim())) }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "31b324be-0b23-47a1-bb70-45ed4f82a38f",
+      "name": "IF: InScope_Order?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -560,
+        208
+      ],
+      "notesInFlow": true,
+      "notes": "Sanity check to prevent AI crashes on bad data."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "hv-gt-config",
+              "leftValue": "={{ Number(String($json.OrderAmount).replace(/[$,]/g, '').trim()) }}",
+              "rightValue": "={{ $('CONFIG: Thresholds').first().json.highValueLimit }}",
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "4d3079ff-50ea-4c78-a06c-8d989dd0cc89",
+      "name": "IF: HighValue?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -304,
+        208
+      ],
+      "notesInFlow": true,
+      "notes": "OrderAmount > CONFIG.highValueLimit. Threshold is not hardcoded."
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Summarize this order details for the sales team. Tone: {{ $('CONFIG: Thresholds').first().json.aiTone }}.\n\nOrderID: {{ $json.OrderID }}\nCustomer: {{ $json.CustomerName }}\nAmount (USD): {{ $json.OrderAmount }}\nDetails: {{ $json.OrderDetails }}\nEnvironment: {{ $('CONFIG: Thresholds').first().json.environment }}\n\nWrite 3-5 sentences a busy Account Manager can act on before 9 AM. Lead with the customer and amount. Call out anything that looks time-sensitive. Do not invent fields that are missing.",
+        "options": {
+          "systemMessage": "You are the Morning Brief writer for Amani's sales team. Output plain text only. Be professional and concise. Never fabricate numbers or customer facts."
+        }
+      },
+      "id": "9dfb6d90-80ac-4422-9fb3-add7816882e0",
+      "name": "AI: Summarize_Flagged_Orders",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        368,
+        288
+      ],
+      "notesInFlow": true,
+      "notes": "Tone is injected from CONFIG.aiTone so copy can change without editing this node."
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "id": "9ad2164b-e7da-4b4b-9b4c-27466290bd8f",
+      "name": "MODEL: OpenAI_4o_mini",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        368,
+        480
+      ],
+      "notes": "Attach an OpenAI (or compatible) credential before activating."
+    },
+    {
+      "parameters": {
+        "sendTo": "YOUR_EMAIL@example.com",
+        "subject": "=Morning Brief · VIP {{ $json.OrderID }} · {{ $('READ: Daily_Orders').item.json.CustomerName }}",
+        "message": "=<p><strong>Amani Morning Brief — High-Value Order</strong></p>\n<p><strong>Order:</strong> {{ $('READ: Daily_Orders').item.json.OrderID }}<br/>\n<strong>Customer:</strong> {{ $('READ: Daily_Orders').item.json.CustomerName }}<br/>\n<strong>Amount:</strong> ${{ $('READ: Daily_Orders').item.json.OrderAmount }}<br/>\n<strong>Environment:</strong> {{ $('CONFIG: Thresholds').first().json.environment }}</p>\n<hr/>\n<p>{{ $json.output }}</p>\n<p style=\"color:#667085;font-size:12px;\">Generated by workflow Amani Morning Brief. Threshold ${{ $('CONFIG: Thresholds').first().json.highValueLimit }}.</p>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "dd48670d-1ebb-490d-a7d3-568c027ab14c",
+      "name": "SEND: Email_Alert",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        704,
+        288
+      ],
+      "webhookId": "d4e6f8a0-email-alert-0001",
+      "notesInFlow": true,
+      "notes": "Replace YOUR_EMAIL@example.com with the Account Manager inbox before going live."
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "out-id",
+              "name": "OrderID",
+              "value": "={{ $('READ: Daily_Orders').item.json.OrderID }}",
+              "type": "string"
+            },
+            {
+              "id": "out-cust",
+              "name": "CustomerName",
+              "value": "={{ $('READ: Daily_Orders').item.json.CustomerName }}",
+              "type": "string"
+            },
+            {
+              "id": "out-amt",
+              "name": "OrderAmount",
+              "value": "={{ $('READ: Daily_Orders').item.json.OrderAmount }}",
+              "type": "number"
+            },
+            {
+              "id": "out-details",
+              "name": "OrderDetails",
+              "value": "={{ $('READ: Daily_Orders').item.json.OrderDetails }}",
+              "type": "string"
+            },
+            {
+              "id": "out-summary",
+              "name": "aiSummary",
+              "value": "={{ $('AI: Summarize_Flagged_Orders').item.json.output }}",
+              "type": "string"
+            },
+            {
+              "id": "out-env",
+              "name": "environment",
+              "value": "={{ $('CONFIG: Thresholds').first().json.environment }}",
+              "type": "string"
+            },
+            {
+              "id": "out-limit",
+              "name": "appliedThreshold",
+              "value": "={{ $('CONFIG: Thresholds').first().json.highValueLimit }}",
+              "type": "number"
+            },
+            {
+              "id": "out-flag",
+              "name": "flagged",
+              "value": true,
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e530063f-e851-4303-9ca5-4889ed0d052b",
+      "name": "DISPLAY: Flagged_Orders",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        992,
+        288
+      ],
+      "notesInFlow": true,
+      "notes": "Final JSON the team inspects after a run. Safe to pin during tests."
+    }
+  ],
+  "connections": {
+    "TRIGGER: Daily_8AM": {
+      "main": [
+        [
+          {
+            "node": "CONFIG: Thresholds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CONFIG: Thresholds": {
+      "main": [
+        [
+          {
+            "node": "READ: Daily_Orders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "READ: Daily_Orders": {
+      "main": [
+        [
+          {
+            "node": "IF: InScope_Order?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: InScope_Order?": {
+      "main": [
+        [
+          {
+            "node": "IF: HighValue?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: HighValue?": {
+      "main": [
+        [
+          {
+            "node": "AI: Summarize_Flagged_Orders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MODEL: OpenAI_4o_mini": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI: Summarize_Flagged_Orders",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI: Summarize_Flagged_Orders": {
+      "main": [
+        [
+          {
+            "node": "SEND: Email_Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SEND: Email_Alert": {
+      "main": [
+        [
+          {
+            "node": "DISPLAY: Flagged_Orders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "nodeGroups": [
+    {
+      "id": "e6405579-96a4-42bc-8947-c4cbf5b24585",
+      "name": "Validation & Logic",
+      "nodeIds": [
+        "31b324be-0b23-47a1-bb70-45ed4f82a38f",
+        "4d3079ff-50ea-4c78-a06c-8d989dd0cc89"
+      ]
+    },
+    {
+      "id": "d43cbac6-fec7-4811-8545-051f3451c604",
+      "name": "Processing & Output",
+      "nodeIds": [
+        "9dfb6d90-80ac-4422-9fb3-add7816882e0",
+        "9ad2164b-e7da-4b4b-9b4c-27466290bd8f",
+        "dd48670d-1ebb-490d-a7d3-568c027ab14c",
+        "e530063f-e851-4303-9ca5-4889ed0d052b"
+      ]
+    }
+  ],
+  "pinData": {},
+  "versionId": "355737fc-0f70-48e4-b30b-37bf044f18a9",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-09-02T09:02:33.667Z",
+      "createdAt": "2026-09-02T09:02:33.667Z",
+      "role": "workflow:owner",
+      "workflowId": "DIYtRsjaSLOcoeFB",
+      "projectId": "aEmg0W5LInvaXu5h"
+    }
+  ],
+  "activeVersion": null,
+  "tags": [
+    {
+      "updatedAt": "2026-09-02T09:02:32.095Z",
+      "createdAt": "2026-09-02T09:02:32.095Z",
+      "id": "2sZxo0hYTjgMJdHI",
+      "name": "morning-brief"
+    },
+    {
+      "updatedAt": "2026-09-02T09:02:32.093Z",
+      "createdAt": "2026-09-02T09:02:32.093Z",
+      "id": "unqcQtyQgrb70Xzt",
+      "name": "production"
+    },
+    {
+      "updatedAt": "2026-09-02T09:02:32.094Z",
+      "createdAt": "2026-09-02T09:02:32.094Z",
+      "id": "zYFRr9SQmvvnVf1G",
+      "name": "sales"
+    }
+  ]
+}
