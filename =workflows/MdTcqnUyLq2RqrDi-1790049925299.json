@@ -1,0 +1,562 @@
+{
+  "updatedAt": "2026-07-26T11:58:30.540Z",
+  "createdAt": "2026-07-26T10:44:25.598Z",
+  "id": "MdTcqnUyLq2RqrDi",
+  "name": "Talent Ops Amani  with OpenRouter",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/14tUp4Nwf4EhAuhPUNVP0EtPdiUTlRTWzb1aLP3YdHa4/edit?gid=847775913#gid=847775913",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 847775913,
+          "mode": "list",
+          "cachedResultName": "Applicants",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14tUp4Nwf4EhAuhPUNVP0EtPdiUTlRTWzb1aLP3YdHa4/edit#gid=847775913"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -3424,
+        -1200
+      ],
+      "id": "622b2125-c6f2-4892-b83e-fb2fb5533d48",
+      "name": "Get Data Applicants",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zaBqUPxNKi3hNy3M",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/14tUp4Nwf4EhAuhPUNVP0EtPdiUTlRTWzb1aLP3YdHa4/edit?gid=847775913#gid=847775913",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 313104266,
+          "mode": "list",
+          "cachedResultName": "Interview Feedback",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14tUp4Nwf4EhAuhPUNVP0EtPdiUTlRTWzb1aLP3YdHa4/edit#gid=313104266"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -3424,
+        -864
+      ],
+      "id": "e29c6047-ad92-45a1-9842-e83b447eaa14",
+      "name": "Get Data Interview Feedback",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zaBqUPxNKi3hNy3M",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "['Applicant ID']",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -3008,
+        -1056
+      ],
+      "id": "f3d4e0b9-1cc5-43fb-82a3-47df0dfb5fe8",
+      "name": "Merge",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -3840,
+        -864
+      ],
+      "id": "7f642c20-6405-4f25-a0bf-62b0e0241e9e",
+      "name": "Weekly Trigger",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/14tUp4Nwf4EhAuhPUNVP0EtPdiUTlRTWzb1aLP3YdHa4/edit?gid=847775913#gid=847775913",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1844499869,
+          "mode": "list",
+          "cachedResultName": "Historical Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14tUp4Nwf4EhAuhPUNVP0EtPdiUTlRTWzb1aLP3YdHa4/edit#gid=1844499869"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -3424,
+        -512
+      ],
+      "id": "e36ef682-dff3-4ec5-8021-29a1a567fa15",
+      "name": "Get Data Historical",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zaBqUPxNKi3hNy3M",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "Stage",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -2768,
+        -864
+      ],
+      "id": "7d3b987e-2a56-4c96-9ebc-8f83fb75b05b",
+      "name": "Merge1 + Historical Data",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "batchSize": 20,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -2528,
+        -864
+      ],
+      "id": "03fd3737-8992-42f2-aff1-9c1cfa6d1f89",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"candidate_health\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"Healthy\",\n        \"Stalled\"\n      ]\n    },\n    \"risk_factor\": {\n      \"type\": \"string\"\n    }\n  },\n  \"required\": [\n    \"candidate_health\",\n    \"risk_factor\"\n  ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -1920,
+        -352
+      ],
+      "id": "f42d48f6-2561-40ec-9dd2-45e9780dc44e",
+      "name": "Structured Output Parser Candidate Health"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -2336,
+        -1248
+      ],
+      "id": "313e449d-4965-4123-9d3c-e1fb025f4b35",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze the pipeline metrics: {{ $json.data }}\n\nIdentify the bottleneck stage (Interview, Offer, Screening).\nProvide 3 actionable recommendations to improve hiring speed.\n\nFormat the output as valid HTML (use <ul> for lists and <b> for bolding).",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -2096,
+        -1200
+      ],
+      "id": "0538355c-bdd4-4cef-ae23-bbc0e94fdb1c",
+      "name": "Strategic Advisor"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Review Candidate:{{ $json.Name }}\n\nCurrent Stage: {{ $json['Current Stage'] }}\n\nDays in Stage: {{ $json['Days in Stage'] }}\n\nFeedback Sentiment: {{ $json.Sentiment }}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -2288,
+        -608
+      ],
+      "id": "11d5564d-62ab-428b-9898-be7529902d6c",
+      "name": "The Pipeline Assessor"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "41b084c8-b5d6-4c5b-b8c4-5f14b825f219",
+              "leftValue": "={{ $json.output.properties.candidate_health }}",
+              "rightValue": "stalled",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1904,
+        -608
+      ],
+      "id": "7871fb50-ac9e-4cc9-9587-ecebbe5bcaf7",
+      "name": "If Candidate Health Status"
+    },
+    {
+      "parameters": {
+        "model": "openai/o4-mini-high",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -2432,
+        -400
+      ],
+      "id": "f165e779-e5b4-4b2c-926d-d679f7329223",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "tDpr8Zoc5UalZJAa",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-4-turbo",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -2240,
+        -992
+      ],
+      "id": "5edf9657-47f7-4adf-8715-bb8c839b2c88",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "tDpr8Zoc5UalZJAa",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "kamulamakaka@gmail.com",
+        "subject": "=Talent Hiring",
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -1776,
+        -1056
+      ],
+      "id": "60191df2-d662-4314-8385-edd37a6029cc",
+      "name": "Strategy Report to HR",
+      "webhookId": "e62b514a-c4dc-4a76-80d9-28c34cf606f3",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "99tInuffroXLujwm",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "Merging\n\n1. Created Schedule Trigger\n2. Connected Google sheets - Applicant &  interview Feedback \n3. Merge node with Applicant ID\n4. Out Put Called Merge 1 (Applicant + Interview Feedback)\n5. Combined Merge 1 with Historical Data using Common Stage ",
+        "height": 1216,
+        "width": 1184,
+        "color": "#7D7E72"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -3856,
+        -1488
+      ],
+      "typeVersion": 1,
+      "id": "8d856826-85ab-41f7-bb4f-7a792957d766",
+      "name": "Sticky Note1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "Batch & Loop \n\n1. Introduced Loop to split into batches of 20 at a time\n2. Ai agent pipeline assessor to Analyze marged data for every individual Candidate\n3. If node to check candidates Health as Stalled \n4. Recombine both outputs on IF node back to the loop \n5. Aggregated both outputs for LOOP before and after IF node Healtjh status \n6. introduced A! agent 2 to  analyze, patterns and send email to HR advising on Hiring .",
+        "height": 1328,
+        "width": 1088,
+        "color": "#5E7382"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2608,
+        -1504
+      ],
+      "typeVersion": 1,
+      "id": "5ad34863-2cc5-46b3-b16d-4e6d9fbf7694",
+      "name": "Sticky Note"
+    }
+  ],
+  "connections": {
+    "Get Data Interview Feedback": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Get Data Applicants": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Weekly Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Data Applicants",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Data Interview Feedback",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Data Historical",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Merge1 + Historical Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Data Historical": {
+      "main": [
+        [
+          {
+            "node": "Merge1 + Historical Data",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge1 + Historical Data": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "The Pipeline Assessor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser Candidate Health": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "The Pipeline Assessor",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Strategic Advisor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "The Pipeline Assessor": {
+      "main": [
+        [
+          {
+            "node": "If Candidate Health Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Candidate Health Status": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Strategic Advisor": {
+      "main": [
+        [
+          {
+            "node": "Strategy Report to HR",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "The Pipeline Assessor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Strategic Advisor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "6a7f2208-ff70-4652-90ab-f509667029d1",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-07-26T10:44:25.600Z",
+      "createdAt": "2026-07-26T10:44:25.600Z",
+      "role": "workflow:owner",
+      "workflowId": "MdTcqnUyLq2RqrDi",
+      "projectId": "aEmg0W5LInvaXu5h"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
