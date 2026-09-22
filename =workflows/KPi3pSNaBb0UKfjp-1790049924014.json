@@ -1,0 +1,265 @@
+{
+  "updatedAt": "2026-08-21T14:16:15.382Z",
+  "createdAt": "2026-08-19T17:10:55.369Z",
+  "id": "KPi3pSNaBb0UKfjp",
+  "name": "Tool Ai Agent",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/14DPeh7_QfvlUx73o8n1msFhtGgMK4QZVHNSHYfrnUyU/edit?gid=398242824#gid=398242824",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 398242824,
+          "mode": "list",
+          "cachedResultName": "Session_Memory_Example",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14DPeh7_QfvlUx73o8n1msFhtGgMK4QZVHNSHYfrnUyU/edit#gid=398242824"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -880,
+        -32
+      ],
+      "id": "f7397ac6-c817-42d2-8217-9bac77b99bc4",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zaBqUPxNKi3hNy3M",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "10ea0c81-4992-419c-9dc5-f8c0d018e116",
+              "name": "Product Name",
+              "value": "={{ $json['Product Name'] }}",
+              "type": "string"
+            },
+            {
+              "id": "54f09fb8-052f-42bb-89b0-df8f74e30fe4",
+              "name": "Price",
+              "value": "={{ $json.Price }}",
+              "type": "number"
+            },
+            {
+              "id": "4b135300-c51d-46bb-899a-cb41f95b45fa",
+              "name": "Stock Quantity",
+              "value": "={{ $json['Stock Quantity'] }}",
+              "type": "number"
+            },
+            {
+              "id": "6e62486b-9335-4fe7-92d7-cb9dfa743433",
+              "name": "Category",
+              "value": "={{ $json.Category }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -672,
+        -32
+      ],
+      "id": "ffc2d054-5c18-402b-8e52-5b55cd1ccff3",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1056,
+        -32
+      ],
+      "id": "5511351e-5d27-4c8a-af2f-b52466310115",
+      "name": "When Executed by Another Workflow"
+    }
+  ],
+  "connections": {
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "ef23f45b-0fd0-497f-9810-57793fda0203",
+  "activeVersionId": "ef23f45b-0fd0-497f-9810-57793fda0203",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-08-19T17:10:55.370Z",
+      "createdAt": "2026-08-19T17:10:55.370Z",
+      "role": "workflow:owner",
+      "workflowId": "KPi3pSNaBb0UKfjp",
+      "projectId": "aEmg0W5LInvaXu5h"
+    }
+  ],
+  "activeVersion": {
+    "updatedAt": "2026-08-21T14:16:35.000Z",
+    "createdAt": "2026-08-21T14:16:15.385Z",
+    "versionId": "ef23f45b-0fd0-497f-9810-57793fda0203",
+    "workflowId": "KPi3pSNaBb0UKfjp",
+    "nodes": [
+      {
+        "parameters": {
+          "documentId": {
+            "__rl": true,
+            "value": "https://docs.google.com/spreadsheets/d/14DPeh7_QfvlUx73o8n1msFhtGgMK4QZVHNSHYfrnUyU/edit?gid=398242824#gid=398242824",
+            "mode": "url"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 398242824,
+            "mode": "list",
+            "cachedResultName": "Session_Memory_Example",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14DPeh7_QfvlUx73o8n1msFhtGgMK4QZVHNSHYfrnUyU/edit#gid=398242824"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          -880,
+          -32
+        ],
+        "id": "f7397ac6-c817-42d2-8217-9bac77b99bc4",
+        "name": "Get row(s) in sheet",
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "zaBqUPxNKi3hNy3M",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "10ea0c81-4992-419c-9dc5-f8c0d018e116",
+                "name": "Product Name",
+                "value": "={{ $json['Product Name'] }}",
+                "type": "string"
+              },
+              {
+                "id": "54f09fb8-052f-42bb-89b0-df8f74e30fe4",
+                "name": "Price",
+                "value": "={{ $json.Price }}",
+                "type": "number"
+              },
+              {
+                "id": "4b135300-c51d-46bb-899a-cb41f95b45fa",
+                "name": "Stock Quantity",
+                "value": "={{ $json['Stock Quantity'] }}",
+                "type": "number"
+              },
+              {
+                "id": "6e62486b-9335-4fe7-92d7-cb9dfa743433",
+                "name": "Category",
+                "value": "={{ $json.Category }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -672,
+          -32
+        ],
+        "id": "ffc2d054-5c18-402b-8e52-5b55cd1ccff3",
+        "name": "Edit Fields"
+      },
+      {
+        "parameters": {
+          "inputSource": "passthrough"
+        },
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          -1056,
+          -32
+        ],
+        "id": "5511351e-5d27-4c8a-af2f-b52466310115",
+        "name": "When Executed by Another Workflow"
+      }
+    ],
+    "connections": {
+      "Get row(s) in sheet": {
+        "main": [
+          [
+            {
+              "node": "Edit Fields",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "When Executed by Another Workflow": {
+        "main": [
+          [
+            {
+              "node": "Get row(s) in sheet",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "nodeGroups": [],
+    "authors": "Laura Makaka",
+    "name": "Version ef23f45b",
+    "description": "",
+    "autosaved": true
+  },
+  "tags": []
+}
